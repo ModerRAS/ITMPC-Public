@@ -121,6 +121,8 @@ jobs:
         run: |
           cargo install cargo-edit
           cargo install tauri-cli
+      - name: Rust | Set Version
+        run: cargo set-version ${{ steps.tag.outputs.result }} --manifest-path=src-tauri/Cargo.toml
       - name: Build Tauri
         uses: tauri-apps/tauri-action@v0
         env:
