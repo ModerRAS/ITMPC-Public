@@ -1,9 +1,10 @@
 {
   "build": {
-    "beforeBuildCommand": "pnpm run build",
+    "beforeBuildCommand": "pnpm run export",
     "beforeDevCommand": "pnpm run dev",
     "devPath": " http://localhost:3000",
-    "distDir": "../out"
+    "distDir": "../out",
+    "withGlobalTauri": true
   },
   "package": {
     "productName": "itmpc",
@@ -11,7 +12,22 @@
   },
   "tauri": {
     "allowlist": {
-      "all": false
+      "dialog": {
+        "all": false,
+        "open": true,
+        "ask": true
+      },
+      "fs": {
+        "all": true,
+        "readFile": true,
+        "writeFile": true,
+        "readDir": true,
+        "copyFile": true,
+        "createDir": true,
+        "removeDir": true,
+        "removeFile": true,
+        "renameFile": true
+      }
     },
     "bundle": {
       "active": true,
@@ -28,7 +44,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
+      "identifier": "com.miaostay.itmpc",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -50,15 +66,19 @@
       "csp": null
     },
     "updater": {
-      "active": false
+      "active": true,
+      "endpoints": [
+        "https://itmpc.update.miaostay.com/{{target}}/{{arch}}/{{current_version}}"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEM0OEU5MURGQTMxODU0NjgKUldSb1ZCaWozNUdPeEYrb2ZEbFdrMGorRlg0bW5KUjQwZWlvY0R6Y2JCWkc1RzhrUzBqQTVTSkEK"
     },
     "windows": [
       {
         "fullscreen": false,
-        "height": 600,
+        "height": 720,
         "resizable": true,
-        "title": "红外测温图片转换",
-        "width": 800
+        "title": "红外测温实用工具",
+        "width": 1280
       }
     ]
   }

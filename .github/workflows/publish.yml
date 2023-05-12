@@ -1,0 +1,52 @@
+name: Rust
+
+on:
+  push:
+    branches:
+      - release
+  pull_request:
+
+env:
+  version: "1.0.0"
+
+jobs:
+  Publish:
+    name: Publish
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macOS-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Setup | Checkout
+        uses: actions/checkout@v2
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: Setup pnpm
+        run: npm install -g pnpm
+      - name: Install Dependencies (ubuntu only)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+      - name: Setup | Rust
+        uses: ATiltedTree/setup-rust@v1
+        with:
+          rust-version: stable
+      - name: Install | Next.js Requirements
+        run: pnpm install
+      - name: Install | Cargo Requirements
+        run: |
+          cargo install cargo-edit
+          cargo install tauri-cli
+      - name: Build | Compile
+        run: cargo tauri build
+      - name: Upload to Artifact
+        uses: actions/upload-artifact@2
+        with:
+          name: Tauri-app
+          path: src-tauri/target/bundle
