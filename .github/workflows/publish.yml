@@ -46,7 +46,7 @@ jobs:
       - name: Build | Compile
         run: cargo tauri build
       - name: Upload to Artifact
-        uses: actions/upload-artifact@2
+        uses: actions/upload-artifact@v3
         with:
           name: Tauri-app
           path: src-tauri/target/bundle
