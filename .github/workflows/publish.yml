@@ -34,6 +34,9 @@ jobs:
     steps:
     - name: Setup | Checkout
       uses: actions/checkout@v2
+    - name: Get version
+      id: get_version
+      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
     - name: setup node
       uses: actions/setup-node@v3
       with:
