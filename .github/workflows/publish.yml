@@ -1,4 +1,4 @@
-name: Rust
+name: Publish To GitHub Release
 
 on:
   push:
@@ -61,7 +61,6 @@ jobs:
         - beta
         - nightly
     runs-on: ${{ matrix.os }}
-    needs: [compile]
     steps:
     - name: Setup | Checkout
       uses: actions/checkout@v2
@@ -82,7 +81,7 @@ jobs:
       run: cargo test --manifest-path=src-tauri/Cargo.toml
   Publish:
     name: Publish
-    needs: [test]
+    needs: [lint, compile, test]
     strategy:
       matrix:
         os:
@@ -142,6 +141,7 @@ jobs:
         path: src-tauri/target/bundle
 
   update:
+    name: Update Version Checker
     needs: Publish
     runs-on: ubuntu-latest
     steps:
