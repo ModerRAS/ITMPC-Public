@@ -142,9 +142,9 @@ jobs:
           name: Tauri-app
           path: src-tauri/target/bundle
 
-update:
-    needs: release
-    runs-on: macos-latest
+  update:
+    needs: Publish
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
