@@ -92,13 +92,6 @@ jobs:
     steps:
     - name: Setup | Checkout
       uses: actions/checkout@v2
-    - name: Extract tag name
-      id: tag
-      uses: actions/github-script@0.2.0
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          return context.payload.ref.replace(/\/refs\/tags\/v/, '');
     - name: Setup Node
       uses: actions/setup-node@v3
       with:
@@ -121,7 +114,7 @@ jobs:
         cargo install cargo-edit
         cargo install tauri-cli
     - name: Rust | Set Version
-      run: cargo set-version ${{ github.tag_name }} --manifest-path=src-tauri/Cargo.toml
+      run: cargo set-version ${{ github.ref }} --manifest-path=src-tauri/Cargo.toml
     - name: Build Tauri
       uses: tauri-apps/tauri-action@v0
       env:
