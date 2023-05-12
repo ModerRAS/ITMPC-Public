@@ -2,12 +2,10 @@ name: Rust
 
 on:
   push:
+    tags:
     branches:
       - release
   pull_request:
-
-env:
-  version: "1.0.0"
 
 jobs:
   lint:
@@ -96,6 +94,13 @@ jobs:
     steps:
       - name: Setup | Checkout
         uses: actions/checkout@v2
+      - name: Extract tag name
+        id: tag
+        uses: actions/github-script@0.2.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            return context.payload.ref.replace(/\/refs\/tags\//, '');
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
@@ -118,7 +123,17 @@ jobs:
           cargo install cargo-edit
           cargo install tauri-cli
       - name: Rust | Set Version
-        run: cargo set-version {{env.version}}
+        run: cargo set-version ${{ steps.tag.outputs.result }}
+      - name: Build Tauri
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+        with:
+          tagName: v__VERSION__
+          releaseName: v__VERSION__
+
       - name: Build | Compile
         run: cargo tauri build
       - name: Upload to Artifact
@@ -126,3 +141,23 @@ jobs:
         with:
           name: Tauri-app
           path: src-tauri/target/bundle
+
+update:
+    needs: release
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+ 
+      - name: Install Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16
+      - name: Setup pnpm
+        run: npm install -g pnpm
+      - name: Install | Node.js Requirements
+        run: pnpm install
+      - name: Create Update
+        run: pnpm run update
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

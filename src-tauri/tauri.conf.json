@@ -68,7 +68,7 @@
     "updater": {
       "active": true,
       "endpoints": [
-        "https://itmpc.update.miaostay.com/{{target}}/{{arch}}/{{current_version}}"
+        "https://ghp.miaostay.com/https://github.com/ModerRAS/ITMPC-Public/releases/download/updater/update.json"
       ],
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEM0OEU5MURGQTMxODU0NjgKUldSb1ZCaWozNUdPeEYrb2ZEbFdrMGorRlg0bW5KUjQwZWlvY0R6Y2JCWkc1RzhrUzBqQTVTSkEK"
     },
