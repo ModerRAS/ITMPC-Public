@@ -3,7 +3,7 @@ name: Rust
 on:
   push:
     tags:
-      - '*'
+    - '*'
   pull_request:
 
 jobs:
@@ -11,152 +11,152 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - name: Setup | Checkout
-        uses: actions/checkout@v2
-      - name: setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16
-      - name: install dependencie
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
-      - name: Setup | Rust
-        uses: ATiltedTree/setup-rust@v1
-        with:
-          rust-version: stable
-          components: clippy
-      - name: Build | Lint
-        run: cargo clippy --manifest-path=src-tauri/Cargo.toml
+    - name: Setup | Checkout
+      uses: actions/checkout@v2
+    - name: setup node
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+    - name: install dependencie
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+    - name: Setup | Rust
+      uses: ATiltedTree/setup-rust@v1
+      with:
+        rust-version: stable
+        components: clippy
+    - name: Build | Lint
+      run: cargo clippy --manifest-path=src-tauri/Cargo.toml
   compile:
     name: Compile
     runs-on: ubuntu-latest
     steps:
-      - name: Setup | Checkout
-        uses: actions/checkout@v2
-      - name: setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16
-      - name: install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
-      - name: Setup | Rust
-        uses: ATiltedTree/setup-rust@v1
-        with:
-          rust-version: stable
-      - name: Build | Compile
-        run: cargo check --manifest-path=src-tauri/Cargo.toml
+    - name: Setup | Checkout
+      uses: actions/checkout@v2
+    - name: setup node
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+    - name: install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+    - name: Setup | Rust
+      uses: ATiltedTree/setup-rust@v1
+      with:
+        rust-version: stable
+    - name: Build | Compile
+      run: cargo check --manifest-path=src-tauri/Cargo.toml
   test:
     name: Test
     strategy:
       matrix:
         os:
-          - ubuntu-latest
-          - windows-latest
-          - macOS-latest
+        - ubuntu-latest
+        - windows-latest
+        - macOS-latest
         rust:
-          - stable
-          - beta
-          - nightly
+        - stable
+        - beta
+        - nightly
     runs-on: ${{ matrix.os }}
     needs: [compile]
     steps:
-      - name: Setup | Checkout
-        uses: actions/checkout@v2
-      - name: setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16
-      - name: install dependencies (ubuntu only)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
-      - name: Setup | Rust
-        uses: ATiltedTree/setup-rust@v1
-        with:
-          rust-version: ${{ matrix.rust }}
-      - name: Build | Compile
-        run: cargo test --manifest-path=src-tauri/Cargo.toml
+    - name: Setup | Checkout
+      uses: actions/checkout@v2
+    - name: setup node
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+    - name: install dependencies (ubuntu only)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+    - name: Setup | Rust
+      uses: ATiltedTree/setup-rust@v1
+      with:
+        rust-version: ${{ matrix.rust }}
+    - name: Build | Compile
+      run: cargo test --manifest-path=src-tauri/Cargo.toml
   Publish:
     name: Publish
     needs: [test]
     strategy:
       matrix:
         os:
-          - ubuntu-latest
-          - windows-latest
-          - macOS-latest
+        - ubuntu-latest
+        - windows-latest
+        - macOS-latest
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Setup | Checkout
-        uses: actions/checkout@v2
-      - name: Extract tag name
-        id: tag
-        uses: actions/github-script@0.2.0
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            return context.payload.ref.replace(/\/refs\/tags\/v/, '');
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16
-      - name: Setup pnpm
-        run: npm install -g pnpm
-      - name: Install Dependencies (ubuntu only)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
-      - name: Setup | Rust
-        uses: ATiltedTree/setup-rust@v1
-        with:
-          rust-version: stable
-      - name: Install | Next.js Requirements
-        run: pnpm install
-      - name: Install | Cargo Requirements
-        run: |
-          cargo install cargo-edit
-          cargo install tauri-cli
-      - name: Rust | Set Version
-        run: cargo set-version ${{ steps.tag.outputs.result }} --manifest-path=src-tauri/Cargo.toml
-      - name: Build Tauri
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
-        with:
-          tagName: v__VERSION__
-          releaseName: v__VERSION__
+    - name: Setup | Checkout
+      uses: actions/checkout@v2
+    - name: Extract tag name
+      id: tag
+      uses: actions/github-script@0.2.0
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          return context.payload.ref.replace(/\/refs\/tags\/v/, '');
+    - name: Setup Node
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+    - name: Setup pnpm
+      run: npm install -g pnpm
+    - name: Install Dependencies (ubuntu only)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+    - name: Setup | Rust
+      uses: ATiltedTree/setup-rust@v1
+      with:
+        rust-version: stable
+    - name: Install | Next.js Requirements
+      run: pnpm install
+    - name: Install | Cargo Requirements
+      run: |
+        cargo install cargo-edit
+        cargo install tauri-cli
+    - name: Rust | Set Version
+      run: cargo set-version ${{ github.tag_name }} --manifest-path=src-tauri/Cargo.toml
+    - name: Build Tauri
+      uses: tauri-apps/tauri-action@v0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+        TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+      with:
+        tagName: __VERSION__
+        releaseName: __VERSION__
 
-      - name: Build | Compile
-        run: cargo tauri build
-      - name: Upload to Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: Tauri-app
-          path: src-tauri/target/bundle
+    - name: Build | Compile
+      run: cargo tauri build
+    - name: Upload to Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: Tauri-app
+        path: src-tauri/target/bundle
 
   update:
     needs: Publish
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
- 
-      - name: Install Node
-        uses: actions/setup-node@v1
-        with:
-          node-version: 16
-      - name: Setup pnpm
-        run: npm install -g pnpm
-      - name: Install | Node.js Requirements
-        run: pnpm install
-      - name: Create Update
-        run: pnpm run update
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install Node
+      uses: actions/setup-node@v1
+      with:
+        node-version: 16
+    - name: Setup pnpm
+      run: npm install -g pnpm
+    - name: Install | Node.js Requirements
+      run: pnpm install
+    - name: Create Update
+      run: pnpm run update
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
