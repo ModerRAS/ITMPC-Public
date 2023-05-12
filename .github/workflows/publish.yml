@@ -117,6 +117,8 @@ jobs:
         run: |
           cargo install cargo-edit
           cargo install tauri-cli
+      - name: Rust | Set Version
+        run: cargo set-version {{env.version}}
       - name: Build | Compile
         run: cargo tauri build
       - name: Upload to Artifact
