@@ -95,7 +95,6 @@ jobs:
     - name: Get version
       id: get_version
       run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
-    - run: echo ${{ steps.get_version.outputs.VERSION }}
     - name: Setup Node
       uses: actions/setup-node@v3
       with:
