@@ -99,7 +99,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            return context.payload.ref.replace(/\/refs\/tags\//, '');
+            return context.payload.ref.replace(/\/refs\/tags\/v/, '');
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
