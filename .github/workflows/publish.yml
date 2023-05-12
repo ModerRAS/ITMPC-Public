@@ -34,10 +34,6 @@ jobs:
     steps:
     - name: Setup | Checkout
       uses: actions/checkout@v2
-    - name: Get version
-      id: get_version
-      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
-    - run: echo ${{ steps.get_version.outputs.VERSION }}
     - name: setup node
       uses: actions/setup-node@v3
       with:
@@ -96,6 +92,10 @@ jobs:
     steps:
     - name: Setup | Checkout
       uses: actions/checkout@v2
+    - name: Get version
+      id: get_version
+      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+    - run: echo ${{ steps.get_version.outputs.VERSION }}
     - name: Setup Node
       uses: actions/setup-node@v3
       with:
@@ -118,7 +118,7 @@ jobs:
         cargo install cargo-edit
         cargo install tauri-cli
     - name: Rust | Set Version
-      run: cargo set-version ${{ github.ref }} --manifest-path=src-tauri/Cargo.toml
+      run: cargo set-version ${{ steps.get_version.outputs.VERSION }} --manifest-path=src-tauri/Cargo.toml
     - name: Build Tauri
       uses: tauri-apps/tauri-action@v0
       env:
