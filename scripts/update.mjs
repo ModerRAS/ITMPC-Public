@@ -33,7 +33,7 @@ const options = { owner: context.repo.owner, repo: context.repo.repo };
 const { data: release } = await octokit.rest.repos.getLatestRelease(options);
 updateData.name = release.tag_name;
 // eslint-disable-next-line camelcase
-for (const { name, browser_download_url } of release.assets) {
+for (let { name, browser_download_url } of release.assets) {
   browser_download_url = basic_url + browser_download_url;
   if (name.endsWith('.msi.zip')) {
     // eslint-disable-next-line camelcase
