@@ -124,14 +124,6 @@ jobs:
         tagName: __VERSION__
         releaseName: __VERSION__
 
-    - name: Build | Compile
-      run: cargo tauri build
-    - name: Upload to Artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: Tauri-app
-        path: src-tauri/target/bundle
-
   update:
     name: Update Version Checker
     needs: Publish
