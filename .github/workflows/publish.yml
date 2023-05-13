@@ -82,6 +82,8 @@ jobs:
   Publish:
     name: Publish
     needs: [lint, compile, test]
+    permissions:
+      contents: write
     strategy:
       matrix:
         os:
@@ -133,6 +135,8 @@ jobs:
   update:
     name: Update Version Checker
     needs: Publish
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
