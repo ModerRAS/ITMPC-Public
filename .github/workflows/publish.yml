@@ -92,9 +92,6 @@ jobs:
     steps:
     - name: Setup | Checkout
       uses: actions/checkout@v2
-    - name: Get version
-      id: get_version
-      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
     - name: Setup Node
       uses: actions/setup-node@v3
       with:
@@ -114,10 +111,7 @@ jobs:
       run: pnpm install
     - name: Install | Cargo Requirements
       run: |
-        cargo install cargo-edit
         cargo install tauri-cli
-    - name: Rust | Set Version
-      run: cargo set-version ${{ steps.get_version.outputs.VERSION }} --manifest-path=src-tauri/Cargo.toml
     - name: Build Tauri
       uses: tauri-apps/tauri-action@v0
       env:

@@ -1,11 +1,11 @@
 [package]
-name = "app"
-version = "0.1.0"
+name = "itmpc"
+version = "1.0.7"
 description = "A Tauri App"
-authors = ["you"]
+authors = ["ModerRAS"]
 license = ""
 repository = ""
-default-run = "app"
+default-run = "itmpc"
 edition = "2021"
 rust-version = "1.60"
 
