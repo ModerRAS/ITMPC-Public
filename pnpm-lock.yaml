@@ -1,6 +1,9 @@
 lockfileVersion: '6.0'
 
 dependencies:
+  '@paddlejs-models/ocr':
+    specifier: ^1.2.3
+    version: 1.2.3
   '@tauri-apps/api':
     specifier: ^1.3.0
     version: 1.3.0
@@ -361,6 +364,26 @@ packages:
     dependencies:
       '@octokit/openapi-types': 12.11.0
     dev: true
+
+  /@paddlejs-mediapipe/opencv@0.0.4:
+    resolution: {integrity: sha512-bfwixZPKGFh7JcAtLToTBmBiu/nyQjVrm0gf/pn92apHJQEYyhnAFGvgDubmqQbijmtP2/fbOMR4CuSSlq2g8w==}
+    dev: false
+
+  /@paddlejs-models/ocr@1.2.3:
+    resolution: {integrity: sha512-/2tvKgMKNRiE5Tzp7QV5Izw96ibKsnyXrJtrhy/nX3hrKRYKDuFYPlNBb4jrYmXd6M1UI5Zp4XYieTty8vGDCQ==}
+    dependencies:
+      '@paddlejs-mediapipe/opencv': 0.0.4
+      '@paddlejs/paddlejs-backend-webgl': 1.2.9
+      '@paddlejs/paddlejs-core': 2.2.0
+    dev: false
+
+  /@paddlejs/paddlejs-backend-webgl@1.2.9:
+    resolution: {integrity: sha512-cVDa0/Wbw2EyfsYqdYUPhFeqKsET79keEUWjyhYQmQkJfWg8j1qdR6yp7g6nx9qAGrqFvwuj1s0EqkYA1dok6A==}
+    dev: false
+
+  /@paddlejs/paddlejs-core@2.2.0:
+    resolution: {integrity: sha512-P3rPkF9fFHtq8uSte5gA7fJQwBNl9Ytsvj6aTcfQSsirnBO/HxMNu0gJyh7+lItvEtF92PR15eI0eOwJYfZDhQ==}
+    dev: false
 
   /@pkgr/utils@2.4.0:
     resolution: {integrity: sha512-2OCURAmRtdlL8iUDTypMrrxfwe8frXTeXaxGsVOaYtc/wrUyk8Z/0OBetM7cdlsy7ZFWlMX72VogKeh+A4Xcjw==}

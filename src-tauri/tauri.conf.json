@@ -12,6 +12,9 @@
   },
   "tauri": {
     "allowlist": {
+      "protocol": {
+        "all": true
+      },
       "dialog": {
         "all": false,
         "open": true,
@@ -63,7 +66,7 @@
       }
     },
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; img-src 'self' asset: https://asset.localhost"
     },
     "updater": {
       "active": true,

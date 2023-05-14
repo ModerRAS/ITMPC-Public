@@ -105,7 +105,7 @@ export default function Page() {
   }, [SourceFolderFiles, TargetFolder, TargetFileNames]);
   return (
     <BaseContainer>
-      <div class="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-4 gap-2">
         <Button
           handler={async () => setTargetFileNames(await SelectExcel())}
           name={"选择文件"}
@@ -128,19 +128,19 @@ export default function Page() {
           name={"开始转换"}
           description={"按下进行文件名修改"}
         />
-        <table class="border-collapse border border-green-800 table-auto col-span-4">
+        <table className="border-collapse border border-green-800 table-auto col-span-4">
           <thead>
             <tr>
-              <th class="border border-green-800">待转换文件，共{SourceFolderFiles.length}个</th>
-              <th class="border border-green-800">输出文件，共{TargetFileNames.length}个</th>
+              <th className="border border-green-800">待转换文件，共{SourceFolderFiles.length}个</th>
+              <th className="border border-green-800">输出文件，共{TargetFileNames.length}个</th>
             </tr>
           </thead>
           <tbody>
             {AllFilePaths.map(
               (element, i) => (
                 <tr key={i}>
-                  <td class="border border-green-800">{element.SourceFilePath}</td>
-                  <td class="border border-green-800">{element.TargetFilePath}</td>
+                  <td className="border border-green-800">{element.SourceFilePath}</td>
+                  <td className="border border-green-800">{element.TargetFilePath}</td>
                 </tr>
               )
             )}

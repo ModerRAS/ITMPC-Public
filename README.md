@@ -51,3 +51,12 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 1. 读取excel表格
 2. 读取文件目录内的文件路径
 3. 复制文件
+
+## 图像识别
+识别图片内的温度数据
+
+// 51,0 144,43 纵向
+// 0,0 103,45 横向
+// 0,0 139,45 横向
+
+坐标大概在左上角的145，45之前的坐标位置，裁剪之后OCR识别其中的数字就好
