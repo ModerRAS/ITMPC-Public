@@ -4,6 +4,12 @@ dependencies:
   '@paddlejs-models/ocr':
     specifier: ^1.2.3
     version: 1.2.3
+  '@paddlejs/paddlejs-backend-cpu':
+    specifier: 0.0.2-beta.0
+    version: 0.0.2-beta.0
+  '@paddlejs/paddlejs-backend-wasm':
+    specifier: ^1.0.3
+    version: 1.0.3
   '@tauri-apps/api':
     specifier: ^1.3.0
     version: 1.3.0
@@ -381,6 +387,14 @@ packages:
       '@paddlejs-mediapipe/opencv': 0.0.4
       '@paddlejs/paddlejs-backend-webgl': 1.2.9
       '@paddlejs/paddlejs-core': 2.2.0
+    dev: false
+
+  /@paddlejs/paddlejs-backend-cpu@0.0.2-beta.0:
+    resolution: {integrity: sha512-zFNBnSKsfli5vLVKPH+Ot4D3oYLif+e/TYp9NA3Z9fs3MLSc4X+qDrXcjPsYeAYJ+wTXVtNz/HbslH1RO0Q0bQ==}
+    dev: false
+
+  /@paddlejs/paddlejs-backend-wasm@1.0.3:
+    resolution: {integrity: sha512-N02tNArHoulCR70FefrrMbJ3C7bBDRyc0kdA19uWUr8fvM+2Aj/UhaP9GaPqAKpgpESG6wLxi+QScmVJSlPvqg==}
     dev: false
 
   /@paddlejs/paddlejs-backend-webgl@1.2.9:

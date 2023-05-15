@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@paddlejs-models/ocr": "^1.2.3",
+    "@paddlejs/paddlejs-backend-cpu": "0.0.2-beta.0",
+    "@paddlejs/paddlejs-backend-wasm": "^1.0.3",
     "@tauri-apps/api": "^1.3.0",
     "autoprefixer": "10.4.14",
     "eslint": "8.40.0",

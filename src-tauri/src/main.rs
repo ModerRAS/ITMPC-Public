@@ -4,17 +4,57 @@
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
+use std::env;
 use std::fs;
+use std::fs::File;
+use std::io::BufReader;
 use std::path::Path;
+use std::path::PathBuf;
 use std::vec;
 
 use calamine::{open_workbook, open_workbook_auto, Error, RangeDeserializerBuilder, Reader, Xlsx};
+
+use chrono::NaiveDate;
+use rust_xlsxwriter::{Format, FormatAlign, FormatBorder, Image, Workbook, XlsxError};
+
+use exif::In;
+use exif::Tag;
 use flyr::try_parse_flir;
 use image::imageops;
 use image::GenericImageView;
+use image::ImageBuffer;
+use image::ImageError;
+use image::ImageFormat;
 use image::Pixel;
+use rand::{thread_rng, Rng};
+use rnglib::{Language, RNG};
+use serde::Serialize;
 use tauri::generate_handler;
 use tauri::Manager;
+
+use serde::Deserialize;
+use serde_json;
+
+#[derive(Deserialize)]
+struct OcrResult {
+    code: i32,
+    data: Vec<OcrData>,
+}
+
+#[derive(Deserialize)]
+struct OcrData {
+    #[serde(rename = "box")]
+    Box: Vec<Vec<i32>>,
+    score: f32,
+    text: String,
+}
+
+#[derive(Deserialize, Serialize)]
+enum OcrError {
+    NotFound,
+    NotSupportPlatform,
+    NotDetectd,
+}
 
 fn main() {
     tauri::Builder::default()
@@ -30,7 +70,8 @@ fn main() {
         .invoke_handler(generate_handler![
             read_excel_lines,
             get_image_from_directory,
-            copy_file
+            copy_file,
+            read_thermal
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -108,125 +149,139 @@ fn copy_file(from: &str, to: &str) -> Result<u64, String> {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-fn detect_cursor(image_path: &str) -> [usize; 2] {
-    // let cursor_path = handle.path_resolver()
-    //   .resolve_resource("resources/cursor.png")
-    //   .expect("failed to resolve resource");
-    let red_cursor_img = image::open("resources/red_cursor.png").unwrap();
-    let white_cursor_img = image::open("resources/white_cursor.png").unwrap();
-    let cursor_imgs = vec![red_cursor_img, white_cursor_img];
-    // let mut img = image::open("test.jpg").unwrap();
-    let mut img = image::open(image_path).unwrap();
-    let height = usize::try_from(img.height()).unwrap();
-    let width = usize::try_from(img.width()).unwrap();
-    let mut min_point_x = 0;
-    let mut min_point_y = 0;
-    let mut min_point = i32::MAX;
-    // let mut total_points: ArrayBase<OwnedRepr<i32>, Dim<[usize; 2]>> = Array::zeros((height - 48, width - 48));
-    for x in 0..width - 48 {
-        for y in 0..height - 48 {
-            let subimg = imageops::crop(
-                &mut img,
-                x.try_into().unwrap(),
-                y.try_into().unwrap(),
-                48,
-                48,
-            );
-            let mut total_point: i32 = i32::MAX;
-            for cursor_img in &cursor_imgs {
-                let mut tmp_point = 0;
-                'outer: for c_x in 0..48 {
-                    for c_y in 0..48 {
-                        let cursor_binding = cursor_img.get_pixel(c_x, c_y);
-                        let cursor_channels = cursor_binding.channels();
-                        if cursor_channels[3] == 0 {
-                            continue;
-                        }
-                        let subimg_binding = subimg.get_pixel(c_x, c_y);
-                        let subimg_channels = subimg_binding.channels();
-                        let point = (i32::from(cursor_channels[0]) - i32::from(subimg_channels[0]))
-                            .abs()
-                            + (i32::from(cursor_channels[1]) - i32::from(subimg_channels[1])).abs()
-                            + (i32::from(cursor_channels[2]) - i32::from(subimg_channels[2])).abs();
-                        tmp_point += point;
-                        if tmp_point > min_point || tmp_point > total_point {
-                            break 'outer;
-                        }
-                    }
-                }
-                if tmp_point < total_point {
-                    total_point = tmp_point;
-                }
-            }
-            if total_point < min_point {
-                min_point_x = x;
-                min_point_y = y;
-                min_point = total_point
-            }
-        }
-    }
-    println!(
-        "width = {}, height = {}, min_point = {}, min_point_x = {}, min_point_y = {}",
-        width, height, min_point, min_point_x, min_point_y
-    );
-    return [min_point_x, min_point_y];
+fn write_to_excel() {
+    let mut workbook = Workbook::new();
+
+
 }
 
-fn read_thermal(image_path: &str, min_point_x: usize, min_point_y: usize) {
-    let file_path = Path::new(image_path);
-    // let file_path = Path::new("test.jpg");
-    let r_kelvin = try_parse_flir(file_path).unwrap().celsius();
-    let raw_data = try_parse_flir(file_path).unwrap().raw_data_read;
-    println!("{:?}", r_kelvin.shape());
-    if r_kelvin.shape() == [480, 640] {
-        println!(
-            "480, 640 {}",
-            r_kelvin[[min_point_y + 24, min_point_x + 24]]
-        );
-        println!(
-            "480, 640 {}",
-            r_kelvin[[480 - min_point_y - 24, 640 - min_point_x - 24]]
-        );
-        println!(
-            "480, 640 {}",
-            r_kelvin[[480 - min_point_y - 24, min_point_x + 24]]
-        );
-        println!(
-            "480, 640 {}",
-            r_kelvin[[min_point_y + 24, 640 - min_point_x - 24]]
-        );
+#[tauri::command(rename_all = "snake_case")]
+fn read_thermal(image_path: &str) -> Result<f32, ()> {
+    let temp_dir = env::temp_dir();
+    let rng = RNG::try_from(&Language::Elven).unwrap();
 
-        println!(
-            "640, 480 {}",
-            r_kelvin[[min_point_x + 24, min_point_y + 24]]
-        );
-        println!(
-            "640, 480 {}",
-            r_kelvin[[640 - min_point_x - 24, 480 - min_point_y - 24]]
-        );
-        println!(
-            "640, 480 {}",
-            r_kelvin[[640 - min_point_x - 24, min_point_y + 24]]
-        );
-        println!(
-            "640, 480 {}",
-            r_kelvin[[min_point_x + 24, 480 - min_point_y - 24]]
-        );
-    } else {
+    let temp_name = rng.generate_name();
+    let output_path = temp_dir.join(temp_name + ".jpg");
+    match clip_picture(&PathBuf::from(image_path), &output_path) {
+        Ok(_) => match detect_image_thermal_ocr(output_path.clone().into_os_string().into_string().unwrap().as_str()) {
+            Ok(t) => {
+                match fs::remove_file(&output_path) {
+                    Ok(_) => return Ok(t),
+                    Err(_) => return Err(()),
+                };
+
+            },
+            Err(_) => match fs::remove_file(&output_path) {
+                Ok(_) | Err(_) => return Err(()),
+            },
+        },
+        Err(_) => match fs::remove_file(&output_path) {
+            Ok(_) | Err(_) => return Err(()),
+        },
+    };
+}
+
+fn detect_image_thermal_ocr(path: &str) -> Result<f32, OcrError> {
+    if cfg!(target_os = "linux") {
+        return Err(OcrError::NotSupportPlatform);
+    } else if cfg!(target_os = "macos") {
+        return Err(OcrError::NotSupportPlatform);
     }
-    let mut r_max = f32::MIN;
-    let mut r_min = f32::MAX;
-    for r in &r_kelvin {
-        if r < &r_min {
-            r_min = *r;
-        }
-        if r > &r_max {
-            r_max = *r;
+    let mut p = paddleocr::Ppocr::new(std::path::PathBuf::from(
+        "resources/PaddleOCR-json/PaddleOCR_json.exe",
+    ))
+    .unwrap();
+    let ret = p.ocr(path).unwrap();
+    match serde_json::from_str::<OcrResult>(&ret) {
+        Ok(v) => {
+            if v.code != 100 {
+                return Err(OcrError::NotFound);
+            }
+            for data in &v.data {
+                match data.text.parse::<f32>() {
+                    Ok(text) => return Ok(text),
+                    Err(_) => continue,
+                }
+            }
+        },
+        Err(_) => {
+            return Err(OcrError::NotFound)
         }
     }
-    println!("r_min: {}, r_max: {}", r_min, r_max);
-    println!("raw data 0,0: {}", &raw_data[[0,0]]);
-    println!("{}", &r_kelvin[[0,0]]);
+
+    Err(OcrError::NotDetectd)
+    // println!("{}", ret);
+}
+
+fn clip_picture(input_path: &PathBuf, output_path: &PathBuf) -> Result<(), ()> {
+    let file = match File::open(input_path) {
+        Ok(o) => o,
+        Err(_) => return Err(()),
+    };
+    let mut bufreader = BufReader::new(&file);
+    let exifreader = exif::Reader::new();
+    let exif = match exifreader.read_from_container(&mut bufreader) {
+        Ok(o) => o,
+        Err(_) => return Err(()),
+    };
+    let mut img = match image::open(input_path) {
+        Ok(o) => o,
+        Err(_) => return Err(()),
+    };
+
+    match exif.get_field(Tag::Orientation, In::PRIMARY) {
+        Some(orientation) => match orientation.value.get_uint(0) {
+            Some(v @ 1) => {
+                let subimg = imageops::crop(&mut img, 0, 0, 145, 45);
+                // subimg.get_pixel(0, 0)
+                match subimg
+                    .to_image()
+                    .save_with_format(output_path, ImageFormat::Jpeg)
+                {
+                    Ok(_) => Ok(()),
+                    Err(_) => Err(()),
+                }
+            }
+            Some(v @ 3) => {
+                let mut img = imageops::rotate180(&mut img);
+                let subimg = imageops::crop(&mut img, 0, 0, 145, 45);
+                // subimg.get_pixel(0, 0)
+                match subimg
+                    .to_image()
+                    .save_with_format(output_path, ImageFormat::Jpeg)
+                {
+                    Ok(_) => Ok(()),
+                    Err(_) => Err(()),
+                }
+            }
+            Some(v @ 6) => {
+                let mut img = imageops::rotate90(&mut img);
+                let subimg = imageops::crop(&mut img, 0, 0, 145, 45);
+                // subimg.get_pixel(0, 0)
+                match subimg
+                    .to_image()
+                    .save_with_format(output_path, ImageFormat::Jpeg)
+                {
+                    Ok(_) => Ok(()),
+                    Err(_) => Err(()),
+                }
+            }
+            Some(v @ 8) => {
+                let mut img = imageops::rotate270(&mut img);
+                let subimg = imageops::crop(&mut img, 0, 0, 145, 45);
+                // subimg.get_pixel(0, 0)
+                match subimg
+                    .to_image()
+                    .save_with_format(output_path, ImageFormat::Jpeg)
+                {
+                    Ok(_) => Ok(()),
+                    Err(_) => Err(()),
+                }
+            }
+            _ => Err(()),
+        },
+        None => Err(()),
+    }
 }
 
 #[cfg(test)]

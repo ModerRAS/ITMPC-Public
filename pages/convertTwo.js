@@ -67,12 +67,21 @@ async function SelectTargetFolder() {
 }
 
 async function StartConvert(SourceFolderFiles, TargetFolder, TargetFileNames) {
-
+  let Thermal = new Map();
   if (TargetFileNames.length === SourceFolderFiles.length) {
     for (let index = 0; index < TargetFileNames.length; index++) {
       const TargetFileName = `${TargetFolder}\\${TargetFileNames[index]}.jpg`;
       const SourceFileName = SourceFolderFiles[index];
+
       await invoke("copy_file", { from: SourceFileName, to: TargetFileName });
+
+      try {
+        let ret = await invoke("read_thermal", { image_path: SourceFileName })
+        console.log(`Thermal is :${ret}`)
+        Thermal.set(TargetFileNames[index], ret)
+      } catch (error) {
+        console.log(`Error is: ${error}`)
+      }
     }
     await ask("转换完成");
   } else {
@@ -81,25 +90,30 @@ async function StartConvert(SourceFolderFiles, TargetFolder, TargetFileNames) {
 }
 
 async function TestTesseract() {
+  let path = convertFileSrc('resources/test.jpg');
+  console.log(path)
+  let ret = await invoke("read_thermal", { image_path: "C:\\Users\\adqew\\Pictures\\红外\\1000kVT615ACF交流滤波器电流互感器器CT5A相.jpg" })
+  console.log(ret)
   // const worker = await createWorker({
   //   workerPath: convertFileSrc('resources/tesseract.js/worker.min.js'),
   //   langPath: convertFileSrc('resources/tessdata/'),
   //   corePath: convertFileSrc('resources/tesseract.js-core/tesseract-core.wasm.js'),
   //   logger: m => console.log(m),
   // });
-  // await worker.loadLanguage('chi_sim');
-  // await worker.initialize('chi_sim');
+  // await worker.loadLanguage('eng');
+  // await worker.initialize('eng');
   // const { data: { text } } = await worker.recognize(convertFileSrc('resources/test2.jpg'));
   // console.log(text);
   // await worker.terminate();
-  await ocr.init();
-  const img = document.createElement("img");
-  img.src = convertFileSrc('resources/test2.jpg')
-  img.crossOrigin='anonymous'
-  
-  const res = await ocr.recognize(img);
-  console.log(res.text);
-  console.log(res.points);
+  // await ocr.init(convertFileSrc('resources/ocr/ch_PP-OCRv2_det_fuse_activation/model.json'), convertFileSrc('resources/ocr/ch_PP-OCRv2_rec_fuse_activation/model.json'));
+  // await ocr.init()
+  // const img = document.createElement("img");
+  // img.src = convertFileSrc('resources/test.jpg')
+  // img.crossOrigin='anonymous'
+
+  // const res = await ocr.recognize(img);
+  // console.log(res.text);
+  // console.log(res.points);
 }
 
 function MergeLines(SourceFolderFiles, TargetFolder, TargetFileNames) {
@@ -153,8 +167,8 @@ export default function Page() {
         />
         <Button
           handler={async () =>
-            // await StartConvert(SourceFolderFiles, TargetFolder, TargetFileNames)
-            await TestTesseract()
+            await StartConvert(SourceFolderFiles, TargetFolder, TargetFileNames)
+            // await TestTesseract()
           }
           name={"开始转换"}
           description={"按下进行文件名修改"}
