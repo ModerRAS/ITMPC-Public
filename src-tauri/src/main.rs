@@ -172,14 +172,12 @@ fn detect_cursor(image_path: &str) -> [usize; 2] {
     return [min_point_x, min_point_y];
 }
 
-fn read_thermal(image_path: &str, point_x: usize, poing_y: usize) {
+fn read_thermal(image_path: &str, min_point_x: usize, min_point_y: usize) {
     let file_path = Path::new(image_path);
     // let file_path = Path::new("test.jpg");
     let r_kelvin = try_parse_flir(file_path).unwrap().celsius();
     let raw_data = try_parse_flir(file_path).unwrap().raw_data_read;
     println!("{:?}", r_kelvin.shape());
-    let min_point_x = 309;
-    let min_point_y = 264;
     if r_kelvin.shape() == [480, 640] {
         println!(
             "480, 640 {}",
