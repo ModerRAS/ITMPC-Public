@@ -13,6 +13,11 @@
   "tauri": {
     "allowlist": {
       "protocol": {
+        "all": true,
+        "asset": true,
+        "assetScope": ["**"]
+      },
+      "path": {
         "all": true
       },
       "dialog": {
@@ -52,7 +57,7 @@
       "macOS": {
         "entitlements": null,
         "exceptionDomain": "",
-        "frameworks": [],
+        "frameworks": ["resources/*"],
         "providerShortName": null,
         "signingIdentity": null
       },
@@ -66,7 +71,7 @@
       }
     },
     "security": {
-      "csp": "default-src 'self'; img-src 'self' asset: https://asset.localhost"
+      "csp": "img-src * 'self' data: https:;"
     },
     "updater": {
       "active": true,
