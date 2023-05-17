@@ -30,6 +30,8 @@ rand = "0.8.5"
 random_name_generator = "0.3.4"
 rust_xlsxwriter = "0.38.0"
 chrono = "0.4.24"
+directories = "5.0.1"
+sevenz-rust = "0.2.10"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.

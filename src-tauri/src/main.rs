@@ -35,6 +35,8 @@ use tauri::Manager;
 use serde::Deserialize;
 use serde_json;
 
+use directories::{BaseDirs, UserDirs, ProjectDirs};
+
 #[derive(Deserialize)]
 struct OcrResult {
     code: i32,
@@ -187,30 +189,37 @@ fn detect_image_thermal_ocr(path: &str) -> Result<f32, OcrError> {
     } else if cfg!(target_os = "macos") {
         return Err(OcrError::NotSupportPlatform);
     }
-    let mut p = paddleocr::Ppocr::new(std::path::PathBuf::from(
-        "resources/PaddleOCR-json/PaddleOCR_json.exe",
-    ))
-    .unwrap();
-    let ret = p.ocr(path).unwrap();
-    match serde_json::from_str::<OcrResult>(&ret) {
-        Ok(v) => {
-            if v.code != 100 {
-                return Err(OcrError::NotFound);
-            }
-            for data in &v.data {
-                match data.text.parse::<f32>() {
-                    Ok(text) => return Ok(text),
-                    Err(_) => continue,
+    if let Some(proj_dirs) = ProjectDirs::from("com", "com.miaostay.itmpc",  "PaddleOCR-json") {
+        let ppocr_dirs = proj_dirs.data_local_dir().join("PaddleOCR_json.exe");
+        println!("{}", ppocr_dirs.clone().into_os_string().into_string().unwrap());
+        // Lin: /home/alice/.config/barapp
+        // Win: C:\Users\Alice\AppData\Roaming\Foo Corp\Bar App\config
+        // Mac: /Users/Alice/Library/Application Support/com.Foo-Corp.Bar-App
+        let mut p = paddleocr::Ppocr::new(ppocr_dirs)
+        .unwrap();
+        let ret = p.ocr(path).unwrap();
+        match serde_json::from_str::<OcrResult>(&ret) {
+            Ok(v) => {
+                if v.code != 100 {
+                    return Err(OcrError::NotFound);
                 }
+                for data in &v.data {
+                    match data.text.parse::<f32>() {
+                        Ok(text) => return Ok(text),
+                        Err(_) => continue,
+                    }
+                }
+            },
+            Err(_) => {
+                return Err(OcrError::NotFound)
             }
-        },
-        Err(_) => {
-            return Err(OcrError::NotFound)
         }
-    }
 
-    Err(OcrError::NotDetectd)
-    // println!("{}", ret);
+        return Err(OcrError::NotDetectd);
+        // println!("{}", ret);
+    }
+    Err(OcrError::NotFound)
+
 }
 
 fn clip_picture(input_path: &PathBuf, output_path: &PathBuf) -> Result<(), ()> {
@@ -282,6 +291,10 @@ fn clip_picture(input_path: &PathBuf, output_path: &PathBuf) -> Result<(), ()> {
         },
         None => Err(()),
     }
+}
+
+fn download_ocr_lib() {
+    sevenz_rust::decompress_file("data/sample.7z", "data/sample").expect("complete");
 }
 
 #[cfg(test)]

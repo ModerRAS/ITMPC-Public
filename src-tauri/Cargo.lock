@@ -192,6 +192,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "bit-set"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0700ddab506f33b20a03b13996eccd309a48e5ff77d0d95926aa0210fb4e95f1"
+dependencies = [
+ "bit-vec",
+]
+
+[[package]]
+name = "bit-vec"
+version = "0.6.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "349f9b6a179ed607305526ca489b34ad0a41aed5f7980fa90eb03160b69598fb"
+
+[[package]]
 name = "bit_field"
 version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -214,6 +229,15 @@ name = "block"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0d8c1fef690941d3e7788d328517591fecc684c084084702d6ff1641e993699a"
+
+[[package]]
+name = "block-buffer"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4152116fd6e9dadb291ae18fc1ec3575ed6d84c29642d97890f4b4a3417297e4"
+dependencies = [
+ "generic-array",
+]
 
 [[package]]
 name = "block-buffer"
@@ -564,6 +588,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "crc"
+version = "3.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "86ec7a15cbe22e59248fc7eadb1907dab5ba09372595da4d73dd805ed4417dfe"
+dependencies = [
+ "crc-catalog",
+]
+
+[[package]]
+name = "crc-catalog"
+version = "2.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9cace84e55f07e7301bae1c519df89cdad8cc3cd868413d3fdbdeca9ff3db484"
+
+[[package]]
 name = "crc32fast"
 version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -778,12 +817,30 @@ dependencies = [
 
 [[package]]
 name = "digest"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d3dd60d1080a57a05ab032377049e0591415d2b31afd7028356dbf3cc6dcb066"
+dependencies = [
+ "generic-array",
+]
+
+[[package]]
+name = "digest"
 version = "0.10.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8168378f4e5023e7218c89c891c0fd8ecdb5e5e4f18cb78f38cf245dd021e76f"
 dependencies = [
- "block-buffer",
+ "block-buffer 0.10.4",
  "crypto-common",
+]
+
+[[package]]
+name = "directories"
+version = "5.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9a49173b84e034382284f27f1af4dcbbd231ffa358c0fe316541a7337f376a35"
+dependencies = [
+ "dirs-sys",
 ]
 
 [[package]]
@@ -794,6 +851,18 @@ checksum = "b98cf8ebf19c3d1b223e151f99a4f9f0690dca41414773390fc824184ac833e1"
 dependencies = [
  "cfg-if",
  "dirs-sys-next",
+]
+
+[[package]]
+name = "dirs-sys"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "520f05a5cbd335fae5a99ff7a6ab8627577660ee5cfd6a94a6a929b52ff0321c"
+dependencies = [
+ "libc",
+ "option-ext",
+ "redox_users",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -942,6 +1011,17 @@ dependencies = [
  "cfg-if",
  "libc",
  "redox_syscall 0.2.16",
+ "windows-sys 0.48.0",
+]
+
+[[package]]
+name = "filetime_creation"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9d961767622336521cc48b3de810fce4edbf02d0c21079d78f3a6eeaf45b9450"
+dependencies = [
+ "cfg-if",
+ "filetime",
  "windows-sys 0.48.0",
 ]
 
@@ -1658,6 +1738,7 @@ version = "1.0.6"
 dependencies = [
  "calamine",
  "chrono",
+ "directories",
  "flyr",
  "image 0.24.6",
  "kamadak-exif",
@@ -1670,6 +1751,7 @@ dependencies = [
  "rust_xlsxwriter",
  "serde",
  "serde_json",
+ "sevenz-rust",
  "tauri",
  "tauri-build",
 ]
@@ -1866,6 +1948,15 @@ dependencies = [
  "serde_json",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "lzma-rust"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "808dc37ccba979c213304880eadaab444bb522a5fe79acca9e90ec62377125c2"
+dependencies = [
+ "byteorder",
 ]
 
 [[package]]
@@ -2214,6 +2305,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b7e5500299e16ebb147ae15a00a942af264cf3688f47923b8fc2cd5858f23ad3"
 
 [[package]]
+name = "opaque-debug"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
+
+[[package]]
 name = "openssl"
 version = "0.10.52"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2256,6 +2353,12 @@ dependencies = [
  "pkg-config",
  "vcpkg",
 ]
+
+[[package]]
+name = "option-ext"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
 
 [[package]]
 name = "overload"
@@ -2902,7 +3005,7 @@ version = "7.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "512b0ab6853f7e14e3c8754acb43d6f748bb9ced66aa5915a6553ac8213f7731"
 dependencies = [
- "sha2",
+ "sha2 0.10.6",
  "walkdir",
 ]
 
@@ -3172,6 +3275,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "sevenz-rust"
+version = "0.2.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c1e99665d02305372743530ff8b84069ea54f4edee8eceb4c92f840e5664c7b3"
+dependencies = [
+ "bit-set",
+ "byteorder",
+ "crc",
+ "filetime_creation",
+ "js-sys",
+ "lzma-rust",
+ "sha2 0.9.9",
+ "wasm-bindgen",
+]
+
+[[package]]
+name = "sha2"
+version = "0.9.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4d58a1e1bf39749807d89cf2d98ac2dfa0ff1cb3faa38fbb64dd88ac8013d800"
+dependencies = [
+ "block-buffer 0.9.0",
+ "cfg-if",
+ "cpufeatures",
+ "digest 0.9.0",
+ "opaque-debug",
+]
+
+[[package]]
 name = "sha2"
 version = "0.10.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3179,7 +3311,7 @@ checksum = "82e6b795fe2e3b1e845bafcb27aa35405c4d47cdfc92af5fc8d3002f76cebdc0"
 dependencies = [
  "cfg-if",
  "cpufeatures",
- "digest",
+ "digest 0.10.6",
 ]
 
 [[package]]
@@ -3511,7 +3643,7 @@ dependencies = [
  "semver",
  "serde",
  "serde_json",
- "sha2",
+ "sha2 0.10.6",
  "tauri-utils",
  "thiserror",
  "time 0.3.15",
@@ -4536,7 +4668,7 @@ dependencies = [
  "once_cell",
  "serde",
  "serde_json",
- "sha2",
+ "sha2 0.10.6",
  "soup2",
  "tao",
  "thiserror",

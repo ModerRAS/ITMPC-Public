@@ -2,9 +2,9 @@
 import React, { useEffect, useState } from "react";
 
 import { invoke } from "@tauri-apps/api/tauri";
-import { resolveResource } from '@tauri-apps/api/path'
+// import { resolveResource } from '@tauri-apps/api/path'
 // alternatively, use `window.__TAURI__.path.resolveResource`
-import { readTextFile } from '@tauri-apps/api/fs'
+// import { readTextFile } from '@tauri-apps/api/fs'
 // alternatively, use `window.__TAURI__.fs.readTextFile`
 import { open, ask } from "@tauri-apps/api/dialog";
 import { convertFileSrc } from '@tauri-apps/api/tauri';
@@ -12,8 +12,8 @@ import { convertFileSrc } from '@tauri-apps/api/tauri';
 import BaseContainer from "./util/container";
 import Button from "./util/Button";
 
-import { createWorker } from "tesseract.js";
-import * as ocr from '@paddlejs-models/ocr';
+// import { createWorker } from "tesseract.js";
+// import * as ocr from '@paddlejs-models/ocr';
 
 async function SelectExcel() {
   let file = await open({
