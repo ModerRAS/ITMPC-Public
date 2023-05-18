@@ -32,6 +32,10 @@ rust_xlsxwriter = "0.38.0"
 chrono = "0.4.24"
 directories = "5.0.1"
 sevenz-rust = "0.2.10"
+reqwest = { version = "0.11.18", features = ["json", "stream"] }
+tokio = { version = "1.28.1", features = ["full"] }
+zip = "0.6.6"
+futures-util = "0.3.28"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.
