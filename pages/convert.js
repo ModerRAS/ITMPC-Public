@@ -2,10 +2,18 @@
 import React, { useEffect, useState } from "react";
 
 import { invoke } from "@tauri-apps/api/tauri";
-import BaseContainer from "./util/container";
-
+// import { resolveResource } from '@tauri-apps/api/path'
+// alternatively, use `window.__TAURI__.path.resolveResource`
+// import { readTextFile } from '@tauri-apps/api/fs'
+// alternatively, use `window.__TAURI__.fs.readTextFile`
 import { open, ask } from "@tauri-apps/api/dialog";
+import { convertFileSrc } from '@tauri-apps/api/tauri';
+
+import BaseContainer from "./util/container";
 import Button from "./util/Button";
+
+// import { createWorker } from "tesseract.js";
+// import * as ocr from '@paddlejs-models/ocr';
 
 async function SelectExcel() {
   let file = await open({
@@ -58,14 +66,34 @@ async function SelectTargetFolder() {
   return file;
 }
 
-async function StartConvert(SourceFolderFiles, TargetFolder, TargetFileNames) {
+async function StartConvert(SourceFolderFiles, TargetFolder, TargetFileNames, setConvertState) {
+  let Thermal = new Map();
+
+  try {
+    setConvertState("正在准备OCR依赖")
+    let ret = await invoke("prepare_ocr_lib")
+  } catch (error) {
+
+  }
+
   if (TargetFileNames.length === SourceFolderFiles.length) {
     for (let index = 0; index < TargetFileNames.length; index++) {
       const TargetFileName = `${TargetFolder}\\${TargetFileNames[index]}.jpg`;
       const SourceFileName = SourceFolderFiles[index];
+
+      setConvertState("正在复制文件")
       await invoke("copy_file", { from: SourceFileName, to: TargetFileName });
+
+      try {
+        setConvertState(`正在读取温度(已完成${index}/${TargetFileNames.length})`)
+        let ret = await invoke("read_thermal", { image_path: SourceFileName })
+        console.log(`Thermal is :${ret}`)
+        Thermal.set(TargetFileNames[index], ret)
+      } catch (error) {
+        console.log(`Error is: ${error}`)
+      }
     }
-    await ask("转换完成");
+    await setConvertState(`转换完成`);
   } else {
     await ask("选择的文件数目不对应", { title: "错误", type: "warning" });
   }
@@ -95,11 +123,11 @@ function MergeLines(SourceFolderFiles, TargetFolder, TargetFileNames) {
 }
 
 export default function Page() {
-
   const [SourceFolderFiles, setSourceFolderFiles] = useState([""]);
   const [TargetFolder, setTargetFolder] = useState("");
   const [TargetFileNames, setTargetFileNames] = useState([""]);
   const [AllFilePaths, setAllFilePaths] = useState([[""]]);
+  const [ConvertState, setConvertState] = useState("空闲")
   useEffect(() => {
     setAllFilePaths(MergeLines(SourceFolderFiles, TargetFolder, TargetFileNames))
   }, [SourceFolderFiles, TargetFolder, TargetFileNames]);
@@ -123,11 +151,15 @@ export default function Page() {
         />
         <Button
           handler={async () =>
-            await StartConvert(SourceFolderFiles, TargetFolder, TargetFileNames)
+            await StartConvert(SourceFolderFiles, TargetFolder, TargetFileNames, setConvertState)
+            // await TestTesseract()
           }
           name={"开始转换"}
           description={"按下进行文件名修改"}
         />
+        <div className="border-collapse border border-green-800 table-auto col-span-4">
+          当前状态：{ConvertState}
+        </div>
         <table className="border-collapse border border-green-800 table-auto col-span-4">
           <thead>
             <tr>
