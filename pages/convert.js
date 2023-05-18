@@ -26,8 +26,10 @@ async function SelectExcel() {
     ],
   });
   console.log(file);
-  let names = await invoke("read_excel_lines", { excel_path: file });
+  let names = await invoke("get_image_names", { excel_path: file });
   console.log(names);
+  let lines = await invoke("get_excel_lines", { excel_path: file });
+  console.log(lines)
   return names;
 }
 
