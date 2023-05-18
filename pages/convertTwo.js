@@ -68,7 +68,7 @@ async function SelectTargetFolder() {
 
 async function StartConvert(SourceFolderFiles, TargetFolder, TargetFileNames, setConvertState) {
   let Thermal = new Map();
-  
+
   try {
     setConvertState("正在准备OCR依赖")
     let ret = await invoke("prepare_ocr_lib")
@@ -85,7 +85,7 @@ async function StartConvert(SourceFolderFiles, TargetFolder, TargetFileNames, se
       await invoke("copy_file", { from: SourceFileName, to: TargetFileName });
 
       try {
-        setConvertState(`正在读取温度（第${index+1}个）`)
+        setConvertState(`正在读取温度(已完成${index}/${TargetFileNames.length})`)
         let ret = await invoke("read_thermal", { image_path: SourceFileName })
         console.log(`Thermal is :${ret}`)
         Thermal.set(TargetFileNames[index], ret)
@@ -93,7 +93,7 @@ async function StartConvert(SourceFolderFiles, TargetFolder, TargetFileNames, se
         console.log(`Error is: ${error}`)
       }
     }
-    await ask("转换完成");
+    await setConvertState(`转换完成`);
   } else {
     await ask("选择的文件数目不对应", { title: "错误", type: "warning" });
   }
