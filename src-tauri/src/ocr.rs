@@ -125,7 +125,8 @@ pub fn unzip_ocr_lib(zip_path: PathBuf, to: PathBuf) -> i32 {
 pub fn detect_image_thermal_ocr(path: &str) -> Result<f32, OcrError> {
     if cfg!(target_os = "linux") {
         return Err(OcrError::NotSupportPlatform);
-    } else if cfg!(target_os = "macos") {
+    }
+    if cfg!(target_os = "macos") {
         return Err(OcrError::NotSupportPlatform);
     }
     if let Some(proj_dirs) = ProjectDirs::from("com", "com.miaostay.itmpc", "PaddleOCR-json") {
