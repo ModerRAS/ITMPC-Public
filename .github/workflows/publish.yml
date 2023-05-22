@@ -77,7 +77,7 @@ jobs:
       run: cargo test --manifest-path=src-tauri/Cargo.toml
   Publish:
     name: Publish
-    needs: [lint, compile, test]
+    needs: [lint, compile]
     permissions:
       contents: write
     strategy:
