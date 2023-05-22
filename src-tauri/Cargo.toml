@@ -1,9 +1,9 @@
 [package]
 name = "itmpc"
-version = "1.1.0"
+version = "1.1.1"
 description = "A Tauri App"
 authors = ["ModerRAS"]
-license = ""
+license = "Mozilla Public License Version 2.0"
 repository = ""
 default-run = "itmpc"
 edition = "2021"
