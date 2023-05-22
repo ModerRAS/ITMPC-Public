@@ -15,7 +15,7 @@ import Button from "./util/Button";
 // import { createWorker } from "tesseract.js";
 // import * as ocr from '@paddlejs-models/ocr';
 
-async function SelectExcel() {
+async function SelectExcel(setExcelData, setTargetFileNames) {
   let file = await open({
     title: "选择待打开的Excel文件",
     filters: [
@@ -27,9 +27,11 @@ async function SelectExcel() {
   });
   console.log(file);
   let names = await invoke("get_image_names", { excel_path: file });
+  setTargetFileNames(names)
   console.log(names);
   let lines = await invoke("get_excel_lines", { excel_path: file });
   console.log(lines)
+  setExcelData(lines)
   return names;
 }
 
@@ -68,8 +70,10 @@ async function SelectTargetFolder() {
   return file;
 }
 
-async function StartConvert(SourceFolderFiles, TargetFolder, TargetFileNames, setConvertState) {
+async function StartConvert(SourceFolderFiles, TargetFolder, TargetFileNames, ExcelData, setConvertState) {
   let Thermal = new Map();
+
+  let retdata = []
 
   try {
     setConvertState("正在准备OCR依赖")
@@ -95,6 +99,18 @@ async function StartConvert(SourceFolderFiles, TargetFolder, TargetFileNames, se
         console.log(`Error is: ${error}`)
       }
     }
+
+    for (let index = 0; index < ExcelData.length; index++) {
+      const data = ExcelData[index];
+      const thermal_tmp = Thermal.get(data.device_name);
+      if (thermal_tmp) {
+        retdata.push({...data, thermal: thermal_tmp})
+      } else {
+        retdata.push(data)
+      }
+    }
+    console.log(retdata)
+    await invoke("write_to_excel", {excel_datas: retdata, save_path: `${TargetFolder}/表格数据.xlsx`})
     await setConvertState(`转换完成`);
   } else {
     await ask("选择的文件数目不对应", { title: "错误", type: "warning" });
@@ -129,7 +145,8 @@ export default function Page() {
   const [TargetFolder, setTargetFolder] = useState("");
   const [TargetFileNames, setTargetFileNames] = useState([""]);
   const [AllFilePaths, setAllFilePaths] = useState([[""]]);
-  const [ConvertState, setConvertState] = useState("空闲")
+  const [ConvertState, setConvertState] = useState("空闲");
+  const [ExcelData, setExcelData] = useState([]);
   useEffect(() => {
     setAllFilePaths(MergeLines(SourceFolderFiles, TargetFolder, TargetFileNames))
   }, [SourceFolderFiles, TargetFolder, TargetFileNames]);
@@ -137,7 +154,7 @@ export default function Page() {
     <BaseContainer>
       <div className="grid grid-cols-4 gap-2">
         <Button
-          handler={async () => setTargetFileNames(await SelectExcel())}
+          handler={async () => await SelectExcel(setExcelData, setTargetFileNames)}
           name={"选择文件"}
           description={"选择待识别的Excel文件"}
         />
@@ -153,7 +170,7 @@ export default function Page() {
         />
         <Button
           handler={async () =>
-            await StartConvert(SourceFolderFiles, TargetFolder, TargetFileNames, setConvertState)
+            await StartConvert(SourceFolderFiles, TargetFolder, TargetFileNames, ExcelData, setConvertState)
             // await TestTesseract()
           }
           name={"开始转换"}

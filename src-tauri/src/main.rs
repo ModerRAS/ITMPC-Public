@@ -17,6 +17,8 @@ use ocr::*;
 
 use excel::{get_image_names, get_excel_lines};
 
+use crate::excel::write_to_excel;
+
 
 fn main() {
     tauri::Builder::default()
@@ -35,7 +37,8 @@ fn main() {
             copy_file,
             read_thermal,
             prepare_ocr_lib,
-            get_excel_lines
+            get_excel_lines,
+            write_to_excel
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -87,11 +90,6 @@ fn copy_file(from: &str, to: &str) -> Result<u64, String> {
         Ok(o) => Ok(o),
         Err(e) => Err(e.to_string()),
     }
-}
-
-#[tauri::command(rename_all = "snake_case")]
-fn write_to_excel() {
-
 }
 
 #[tauri::command(rename_all = "snake_case")]

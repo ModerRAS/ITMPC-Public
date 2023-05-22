@@ -1,4 +1,4 @@
-use std::vec;
+use std::{vec, path::PathBuf};
 
 use calamine::{open_workbook_auto, Reader};
 use chrono::NaiveDate;
@@ -15,18 +15,20 @@ pub struct ExcelData {
     thermal: f32,
 }
 
-pub fn write_to_excel(ExcelDatas: Vec<ExcelData>) -> Result<(), XlsxError> {
-    let mut workbook = Workbook::new();
+#[tauri::command(rename_all = "snake_case")]
+pub fn write_to_excel(excel_datas: Vec<ExcelData>, save_path: &str) -> Result<(), ()> {
+    let mut workbook: Workbook = Workbook::new();
     // Add a worksheet to the workbook.
     let worksheet = workbook.add_worksheet();
 
-    for (i, data) in ExcelDatas.iter().enumerate() {
+    for (i, data) in excel_datas.iter().enumerate() {
         write_excel_line(worksheet, u32::try_from(i).unwrap(), data.clone());
     }
 
-    workbook.save("demo.xlsx")?;
-
-    Ok(())
+    match workbook.save(save_path) {
+            Ok(_) => return Ok(()),
+            Err(_) => return Err(()),
+    };
 }
 
 fn write_excel_line(
@@ -66,7 +68,7 @@ pub fn get_excel_lines(excel_path: &str) -> Result<Vec<ExcelData>, String> {
                             device_name: row[2].get_string().unwrap().to_string(),
                             voltage_level: row[3].get_string().unwrap().to_string(),
                             measurement_image: format!("{}.jpg", row[2].get_string().unwrap()),
-                            thermal: 0f32,
+                            thermal: -99999f32,
                         });
                         println!(
                             "row[0] = {:?}\trow[2]={:?}",
