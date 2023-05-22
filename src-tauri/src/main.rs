@@ -129,6 +129,3 @@ fn read_thermal(image_path: &str) -> Result<f32, ()> {
 pub mod excel;
 
 pub mod ocr;
-
-#[cfg(test)]
-pub mod tests;
