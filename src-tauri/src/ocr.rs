@@ -14,8 +14,7 @@ pub struct OcrResult {
 
 #[derive(Deserialize)]
 pub struct OcrData {
-    #[serde(rename = "box")]
-    Box: Vec<Vec<i32>>,
+    r#box: Vec<Vec<i32>>,
     score: f32,
     text: String,
 }
