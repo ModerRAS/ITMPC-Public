@@ -2,7 +2,7 @@
 // @ts-nocheck
 import fetch from 'node-fetch';
 import { getOctokit, context } from '@actions/github';
-import {fs} from 'fs';
+import * as fs from 'fs';
 const UPDATE_TAG_NAME = 'updater';
 const UPDATE_FILE_NAME = 'update.json';
  
