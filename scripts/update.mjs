@@ -2,7 +2,7 @@
 // @ts-nocheck
 import fetch from 'node-fetch';
 import { getOctokit, context } from '@actions/github';
- 
+import {fs} from 'fs';
 const UPDATE_TAG_NAME = 'updater';
 const UPDATE_FILE_NAME = 'update.json';
  
@@ -18,6 +18,7 @@ const basic_url = "https://ghp.miaostay.com/"
 const updateData = {
   name: '',
   pub_date: new Date().toISOString(),
+  notes: fs.readFileSync("UPDATELOG.txt", "utf-8"),
   platforms: {
     win64: { signature: '', url: '' },
     linux: { signature: '', url: '' },
@@ -26,7 +27,6 @@ const updateData = {
     'windows-x86_64': { signature: '', url: '' }
   }
 };
- 
 const octokit = getOctokit(process.env.GITHUB_TOKEN);
 const options = { owner: context.repo.owner, repo: context.repo.repo };
  
