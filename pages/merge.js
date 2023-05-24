@@ -50,7 +50,7 @@ async function SelectSourceFiles(setSourceExcelData) {
   let source = [];
   console.log(files);
   files.forEach(async file => {
-    let lines = await invoke("get_excel_lines_split", { excel_path: file });
+    let lines = await invoke("get_excel_lines", { excel_path: file });
     source.push(...lines)
   });
   console.log(source);

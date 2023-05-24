@@ -17,7 +17,6 @@ use ocr::*;
 
 use excel::{get_image_names, get_excel_lines};
 
-use crate::excel::get_excel_lines_split;
 use crate::excel::write_to_excel;
 
 
@@ -39,8 +38,7 @@ fn main() {
             read_thermal,
             prepare_ocr_lib,
             get_excel_lines,
-            write_to_excel,
-            get_excel_lines_split
+            write_to_excel
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -12,7 +12,7 @@ pub struct ExcelData {
     device_name: String,
     voltage_level: String,
     measurement_image: String,
-    thermal: f32,
+    thermal: f64,
 }
 
 #[tauri::command(rename_all = "snake_case")]
@@ -58,17 +58,18 @@ pub fn get_excel_lines(excel_path: &str) -> Result<Vec<ExcelData>, String> {
         Ok(workbook) => {
             let mut workbook = workbook;
             let mut data = Vec::new();
-            if let Some(Ok(r)) = workbook.worksheet_range_at(1) {
-                for row in r.rows() {
-                    // println!("row={:?}, row[0]={:?}", row, row[0]);
-                    if row[0].get_float() != None {
+            for (sheetname, worksheet) in workbook.worksheets() {
+                println!("Sheetname is: {}", sheetname);
+                for row in worksheet.rows() {
+                    println!("row={:?}, row[0]={:?} row.len()={}", row, row[0], row.len());
+                    if row[0].get_float() != None && row.len() >= 16 {
                         data.push(ExcelData {
                             id: row[0].get_float().unwrap_or_default(),
                             interval_name: row[1].get_string().unwrap_or_default().to_string(),
                             device_name: row[2].get_string().unwrap_or_default().to_string(),
                             voltage_level: row[4].get_string().unwrap_or_default().to_string(),
                             measurement_image: format!("{}.jpg", row[2].get_string().unwrap_or_default()),
-                            thermal: -99999f32,
+                            thermal: row[15].get_float().unwrap_or(-99999f64),
                         });
                         println!(
                             "row[0] = {:?}\trow[2]={:?}\trow[4]={:?}",
@@ -78,47 +79,8 @@ pub fn get_excel_lines(excel_path: &str) -> Result<Vec<ExcelData>, String> {
                         );
                     }
                 }
-                return Ok(data);
-            } else {
-                return Err(From::from("cannot get sheets"));
             }
-        }
-        Err(e) => return Err(From::from(e.to_string())),
-    };
-}
-
-
-#[tauri::command(rename_all = "snake_case")]
-pub fn get_excel_lines_split(excel_path: &str) -> Result<Vec<ExcelData>, String> {
-    let path = excel_path.to_string();
-    let _workbook_result = match open_workbook_auto(path) {
-        Ok(workbook) => {
-            let mut workbook = workbook;
-            let mut data = Vec::new();
-            if let Some(Ok(r)) = workbook.worksheet_range_at(0) {
-                for row in r.rows() {
-                    // println!("row={:?}, row[0]={:?}", row, row[0]);
-                    if row[0].get_float() != None {
-                        data.push(ExcelData {
-                            id: row[0].get_float().unwrap_or_default(),
-                            interval_name: row[1].get_string().unwrap_or_default().to_string(),
-                            device_name: row[2].get_string().unwrap_or_default().to_string(),
-                            voltage_level: row[4].get_string().unwrap_or_default().to_string(),
-                            measurement_image: format!("{}.jpg", row[2].get_string().unwrap_or_default()),
-                            thermal: -99999f32,
-                        });
-                        println!(
-                            "row[0] = {:?}\trow[2]={:?}\trow[4]={:?}",
-                            row[0].get_float(),
-                            row[2].to_string(),
-                            row[4].get_string(),
-                        );
-                    }
-                }
-                return Ok(data);
-            } else {
-                return Err(From::from("cannot get sheets"));
-            }
+            return Ok(data);
         }
         Err(e) => return Err(From::from(e.to_string())),
     };
