@@ -104,9 +104,6 @@ jobs:
         rust-version: stable
     - name: Install | Next.js Requirements
       run: pnpm install
-    - name: Install | Cargo Requirements
-      run: |
-        cargo install tauri-cli
     - name: Build Tauri
       uses: tauri-apps/tauri-action@v0
       env:
