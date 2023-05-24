@@ -3,7 +3,7 @@ use directories::{UserDirs, ProjectDirs};
 use exif::{Tag, In};
 use futures_util::StreamExt;
 
-use image::{imageops, ImageFormat};
+use image::{imageops, ImageFormat, DynamicImage};
 use serde::{Serialize, Deserialize};
 
 #[derive(Deserialize)]
@@ -160,8 +160,12 @@ pub fn detect_image_thermal_ocr(path: &str) -> Result<f32, OcrError> {
     Err(OcrError::NotFound)
 }
 
-pub fn clip_picture(input_path: &PathBuf, output_path: &PathBuf) -> Result<(), ()> {
+fn rotate_image(input_path: &PathBuf) -> Result<image::ImageBuffer<image::Rgba<u8>, Vec<u8>>, ()> {
     let file = match File::open(input_path) {
+        Ok(o) => o,
+        Err(_) => return Err(()),
+    };
+    let mut img = match image::open(input_path) {
         Ok(o) => o,
         Err(_) => return Err(()),
     };
@@ -171,62 +175,44 @@ pub fn clip_picture(input_path: &PathBuf, output_path: &PathBuf) -> Result<(), (
         Ok(o) => o,
         Err(_) => return Err(()),
     };
-    let mut img = match image::open(input_path) {
-        Ok(o) => o,
-        Err(_) => return Err(()),
-    };
-
     match exif.get_field(Tag::Orientation, In::PRIMARY) {
         Some(orientation) => match orientation.value.get_uint(0) {
             Some(v @ 1) => {
-                let subimg = imageops::crop(&mut img, 0, 0, 145, 45);
-                // subimg.get_pixel(0, 0)
-                match subimg
-                    .to_image()
-                    .save_with_format(output_path, ImageFormat::Jpeg)
-                {
-                    Ok(_) => Ok(()),
-                    Err(_) => Err(()),
-                }
+                Ok((&mut img).clone().into_rgba8())
             }
             Some(v @ 3) => {
-                let mut img = imageops::rotate180(&mut img);
-                let subimg = imageops::crop(&mut img, 0, 0, 145, 45);
-                // subimg.get_pixel(0, 0)
-                match subimg
-                    .to_image()
-                    .save_with_format(output_path, ImageFormat::Jpeg)
-                {
-                    Ok(_) => Ok(()),
-                    Err(_) => Err(()),
-                }
+                Ok(imageops::rotate180(&mut img))
+
             }
             Some(v @ 6) => {
-                let mut img = imageops::rotate90(&mut img);
-                let subimg = imageops::crop(&mut img, 0, 0, 145, 45);
-                // subimg.get_pixel(0, 0)
-                match subimg
-                    .to_image()
-                    .save_with_format(output_path, ImageFormat::Jpeg)
-                {
-                    Ok(_) => Ok(()),
-                    Err(_) => Err(()),
-                }
+                Ok(imageops::rotate90(&mut img))
+
             }
             Some(v @ 8) => {
-                let mut img = imageops::rotate270(&mut img);
-                let subimg = imageops::crop(&mut img, 0, 0, 145, 45);
-                // subimg.get_pixel(0, 0)
-                match subimg
-                    .to_image()
-                    .save_with_format(output_path, ImageFormat::Jpeg)
-                {
-                    Ok(_) => Ok(()),
-                    Err(_) => Err(()),
-                }
+                Ok(imageops::rotate270(&mut img))
+
             }
             _ => Err(()),
         },
         None => Err(()),
     }
+}
+
+pub fn clip_picture(input_path: &PathBuf, output_path: &PathBuf) -> Result<(), ()> {
+    match rotate_image(input_path) {
+        Ok(mut img) => {
+            let subimg = imageops::crop(&mut img, 0, 0, 145, 60);
+            // subimg.get_pixel(0, 0)
+            match subimg
+                .to_image()
+                .save_with_format(output_path, ImageFormat::Jpeg)
+            {
+                Ok(_) => Ok(()),
+                Err(_) => Err(()),
+            }
+        },
+        Err(_) => return Err(()),
+    }
+
+
 }
