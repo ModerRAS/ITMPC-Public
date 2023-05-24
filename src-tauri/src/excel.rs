@@ -13,6 +13,13 @@ pub struct ExcelData {
     voltage_level: String,
     measurement_image: String,
     thermal: f64,
+    normal_corresponding_point_temperature: f64,
+    emissivity: f64,
+    ambient_temperature: f64,
+    temperature_difference: f64,
+    temperature_rise: f64,
+    distance: f64,
+    load_current: f64
 }
 
 #[tauri::command(rename_all = "snake_case")]
@@ -41,6 +48,13 @@ fn write_excel_line(
         voltage_level,
         measurement_image,
         thermal,
+        emissivity,
+        ambient_temperature,
+        temperature_difference,
+        temperature_rise,
+        distance,
+        load_current,
+        normal_corresponding_point_temperature,
     }: ExcelData,
 ) {
     worksheet.write(row, 0, id).unwrap();
@@ -48,7 +62,14 @@ fn write_excel_line(
     worksheet.write(row, 2, device_name).unwrap();
     worksheet.write(row, 4, voltage_level).unwrap();
     worksheet.write(row, 10, measurement_image).unwrap();
+    worksheet.write(row, 14, distance).unwrap();
     worksheet.write(row, 15, thermal).unwrap();
+    worksheet.write(row, 16, normal_corresponding_point_temperature).unwrap();
+    worksheet.write(row, 17, temperature_difference).unwrap();
+    worksheet.write(row, 18, temperature_rise).unwrap();
+    worksheet.write(row, 19, ambient_temperature).unwrap();
+    worksheet.write(row, 20, emissivity).unwrap();
+    worksheet.write(row, 21, load_current).unwrap();
 }
 
 #[tauri::command(rename_all = "snake_case")]
@@ -62,14 +83,21 @@ pub fn get_excel_lines(excel_path: &str) -> Result<Vec<ExcelData>, String> {
                 println!("Sheetname is: {}", sheetname);
                 for row in worksheet.rows() {
                     println!("row={:?}, row[0]={:?} row.len()={}", row, row[0], row.len());
-                    if row[0].get_float() != None && row.len() >= 16 {
+                    if row[0].get_float() != None && row.len() >= 22 {
                         data.push(ExcelData {
                             id: row[0].get_float().unwrap_or_default(),
                             interval_name: row[1].get_string().unwrap_or_default().to_string(),
                             device_name: row[2].get_string().unwrap_or_default().to_string(),
                             voltage_level: row[4].get_string().unwrap_or_default().to_string(),
                             measurement_image: format!("{}.jpg", row[2].get_string().unwrap_or_default()),
+                            distance: row[14].get_float().unwrap_or(1.0f64),
                             thermal: row[15].get_float().unwrap_or(-99999f64),
+                            normal_corresponding_point_temperature: row[16].get_float().unwrap_or(-99999f64),
+                            temperature_difference: row[17].get_float().unwrap_or(-99999f64),
+                            temperature_rise: row[18].get_float().unwrap_or(-99999f64),
+                            ambient_temperature: row[19].get_float().unwrap_or(-99999f64),
+                            emissivity: row[20].get_float().unwrap_or(-99999f64),
+                            load_current: row[21].get_float().unwrap_or(-99999f64),
                         });
                         println!(
                             "row[0] = {:?}\trow[2]={:?}\trow[4]={:?}",
