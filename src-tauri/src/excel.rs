@@ -96,8 +96,8 @@ pub fn get_excel_lines(excel_path: &str) -> Result<Vec<ExcelData>, String> {
                             temperature_difference: row[17].get_float().unwrap_or(-99999f64),
                             temperature_rise: row[18].get_float().unwrap_or(-99999f64),
                             ambient_temperature: row[19].get_float().unwrap_or(-99999f64),
-                            emissivity: row[20].get_float().unwrap_or(-99999f64),
-                            load_current: row[21].get_float().unwrap_or(-99999f64),
+                            emissivity: row[20].get_float().unwrap_or(0.9f64),
+                            load_current: row[21].get_float().unwrap_or(0f64),
                         });
                         println!(
                             "row[0] = {:?}\trow[2]={:?}\trow[4]={:?}",
