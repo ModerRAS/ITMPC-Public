@@ -103,7 +103,11 @@ async function StartConvert(SourceFolderFiles, TargetFolder, TargetFileNames, Ex
       }
     }
     console.log(retdata)
-    await invoke("write_to_excel", {excel_datas: retdata, save_path: `${TargetFolder}/表格数据.xlsx`})
+    try {
+      await invoke("write_to_excel", {excel_datas: retdata, save_path: `${TargetFolder}/表格数据.xlsx`})
+    } catch (error) {
+      await ask("无法写入至表格，请检查该表格是否未关闭。", { title: "错误", type: "warning" });
+    }
     await setConvertState(`转换完成`);
   } else {
     await ask("选择的文件数目不对应", { title: "错误", type: "warning" });
