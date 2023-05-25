@@ -146,7 +146,13 @@ pub fn detect_image_thermal_ocr(path: &str) -> Result<f32, OcrError> {
                 }
                 for data in &v.data {
                     match data.text.parse::<f32>() {
-                        Ok(text) => return Ok(text),
+                        Ok(text) => {
+                            if text > 100.0 {
+                                return Ok(text/10.0);
+                            } else {
+                                return Ok(text);
+                            }
+                        },
                         Err(_) => continue,
                     }
                 }
