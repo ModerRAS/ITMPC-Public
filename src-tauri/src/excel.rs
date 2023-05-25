@@ -87,7 +87,7 @@ pub fn get_excel_lines(excel_path: &str) -> Result<Vec<ExcelData>, String> {
                         data.push(ExcelData {
                             id: row[0].get_float().unwrap_or_default(),
                             interval_name: row[1].get_string().unwrap_or_default().to_string(),
-                            device_name: row[2].get_string().unwrap_or_default().to_string(),
+                            device_name: row[2].get_string().unwrap_or_default().to_string().replace("/", "").replace("\\", "").replace("?", "").replace("*", ""),
                             voltage_level: row[4].get_string().unwrap_or_default().to_string(),
                             measurement_image: format!("{}.jpg", row[2].get_string().unwrap_or_default()),
                             distance: row[14].get_float().unwrap_or(1.0f64),
