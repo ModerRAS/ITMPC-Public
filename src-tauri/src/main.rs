@@ -114,12 +114,18 @@ fn read_thermal(image_path: &str) -> Result<f32, ()> {
                     Err(_) => return Err(()),
                 };
             }
-            Err(_) => match fs::remove_file(&output_path) {
-                Ok(_) | Err(_) => return Err(()),
+            Err(e) => match fs::remove_file(&output_path) {
+                Ok(_) | Err(_) => {
+                    println!("{:?}", e);
+                    return Err(());
+                },
             },
         },
-        Err(_) => match fs::remove_file(&output_path) {
-            Ok(_) | Err(_) => return Err(()),
+        Err(e) => match fs::remove_file(&output_path) {
+            Ok(_) | Err(_) => {
+                println!("{:?}", e);
+                return Err(());
+            },
         },
     };
 }

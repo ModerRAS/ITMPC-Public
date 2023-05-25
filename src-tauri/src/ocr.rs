@@ -19,7 +19,7 @@ pub struct OcrData {
     text: String,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub enum OcrError {
     NotFound,
     NotSupportPlatform,
@@ -173,7 +173,10 @@ fn rotate_image(input_path: &PathBuf) -> Result<image::ImageBuffer<image::Rgba<u
     let exifreader = exif::Reader::new();
     let exif = match exifreader.read_from_container(&mut bufreader) {
         Ok(o) => o,
-        Err(_) => return Err(()),
+        Err(_) => {
+            println!("cannot get exif");
+            return Ok((&mut img).clone().into_rgba8());
+        },
     };
     match exif.get_field(Tag::Orientation, In::PRIMARY) {
         Some(orientation) => match orientation.value.get_uint(0) {
@@ -192,9 +195,15 @@ fn rotate_image(input_path: &PathBuf) -> Result<image::ImageBuffer<image::Rgba<u
                 Ok(imageops::rotate270(&mut img))
 
             }
-            _ => Err(()),
+            _ => {
+                println!("cannot match orientation");
+                Ok((&mut img).clone().into_rgba8())
+            },
         },
-        None => Err(()),
+        None => {
+            println!("cannot get field");
+            Ok((&mut img).clone().into_rgba8())
+        },
     }
 }
 
@@ -208,10 +217,16 @@ pub fn clip_picture(input_path: &PathBuf, output_path: &PathBuf) -> Result<(), (
                 .save_with_format(output_path, ImageFormat::Jpeg)
             {
                 Ok(_) => Ok(()),
-                Err(_) => Err(()),
+                Err(_) => {
+                    println!("Subimg error");
+                    Err(())
+                },
             }
         },
-        Err(_) => return Err(()),
+        Err(_) => {
+            println!("rotate_image error");
+            return Err(())
+        },
     }
 
 
