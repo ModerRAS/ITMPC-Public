@@ -19,10 +19,12 @@ async function SelectExcel(setExcelData, setTargetFileNames) {
     ],
   });
   console.log(file);
-  let names = await invoke("get_image_names", { excel_path: file });
+  let lines = await invoke("get_excel_lines", { excel_path: file });
+  let names = lines.map(line => {
+    return line.device_name
+  })
   setTargetFileNames(names)
   console.log(names);
-  let lines = await invoke("get_excel_lines", { excel_path: file });
   console.log(lines)
   setExcelData(lines)
   return names;
@@ -116,6 +118,8 @@ async function StartConvert(SourceFolderFiles, TargetFolder, TargetFileNames, Ex
 
 function MergeLines(SourceFolderFiles, TargetFolder, TargetFileNames) {
   let ret = [];
+  console.log("TargetFileNames")
+  console.log(TargetFileNames)
   if (TargetFolder == "") {
     return [];
   }
@@ -134,6 +138,7 @@ function MergeLines(SourceFolderFiles, TargetFolder, TargetFileNames) {
       TargetFilePath: `${TargetFolder}\\${TargetFileName}.jpg`,
     });
   }
+
   return ret;
 }
 
