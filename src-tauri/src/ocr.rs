@@ -6,6 +6,8 @@ use futures_util::StreamExt;
 use image::{imageops, ImageFormat, DynamicImage};
 use serde::{Serialize, Deserialize};
 
+use rust_decimal::prelude::*;
+
 #[derive(Deserialize)]
 pub struct OcrResult {
     code: i32,
@@ -145,7 +147,7 @@ pub fn detect_image_thermal_ocr(path: &str) -> Result<f32, OcrError> {
                     return Err(OcrError::NotFound);
                 }
                 for data in &v.data {
-                    match data.text.parse::<f32>() {
+                    match Decimal::from_str(data.text) {
                         Ok(text) => {
                             if text > 100.0 {
                                 return Ok(text/10.0);

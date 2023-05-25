@@ -93,7 +93,7 @@ fn copy_file(from: &str, to: &str) -> Result<u64, String> {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-fn read_thermal(image_path: &str) -> Result<f32, ()> {
+fn read_thermal(image_path: &str) -> Result<String, ()> {
     let temp_dir = env::temp_dir();
     let rng = RNG::try_from(&Language::Elven).unwrap();
 
@@ -110,7 +110,7 @@ fn read_thermal(image_path: &str) -> Result<f32, ()> {
         ) {
             Ok(t) => {
                 match fs::remove_file(&output_path) {
-                    Ok(_) => return Ok(t),
+                    Ok(_) => return Ok(t.to_string()),
                     Err(_) => return Err(()),
                 };
             }

@@ -33,6 +33,8 @@ reqwest = { version = "0.11.18", features = ["json", "stream"] }
 tokio = { version = "1.28.1", features = ["full"] }
 zip = "0.6.6"
 futures-util = "0.3.28"
+rust_decimal = { version = "1.29.1", features = ["serde-str", "serde-with-str", "serde_json"] }
+rust_decimal_macros = "1.29.1"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.
