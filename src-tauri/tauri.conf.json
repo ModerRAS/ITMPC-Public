@@ -12,6 +12,11 @@
   },
   "tauri": {
     "allowlist": {
+      "app": {
+        "all": true,
+        "show": true,
+        "hide": true
+      },
       "protocol": {
         "all": true,
         "asset": true,
