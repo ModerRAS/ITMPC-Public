@@ -82,17 +82,19 @@ async function StartConvert(SourceFolderFiles, TargetFolder, TargetFileNames, Ex
       const TargetFileName = `${TargetFolder}\\${TargetFileNames[index]}.jpg`;
       const SourceFileName = SourceFolderFiles[index];
 
-      setConvertState("正在复制文件")
+      setConvertState(`正在复制文件(已完成${index}/${TargetFileNames.length})`)
       await invoke("copy_file", { from: SourceFileName, to: TargetFileName });
+    }
 
-      try {
-        setConvertState(`正在读取温度(已完成${index}/${TargetFileNames.length})`)
-        let ret = await invoke("read_thermal", { image_path: SourceFileName })
-        console.log(`Thermal is :${ret}`)
-        Thermal.set(TargetFileNames[index], ret)
-      } catch (error) {
-        console.log(`Error is: ${error}`)
-      }
+    try {
+      setConvertState(`正在读取温度`)
+      let ret = await invoke("read_thermals", { image_paths: SourceFolderFiles })
+      console.log(`Thermal is :`)
+      console.log(ret)
+      Thermal = new Map(Object.entries(ret));
+      console.log(Thermal)
+    } catch (error) {
+      console.log(`Error is: ${error}`)
     }
 
     for (let index = 0; index < ExcelData.length; index++) {

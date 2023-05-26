@@ -1,10 +1,15 @@
-use std::{path::PathBuf, fs::{File, self}, io::{Write, self, BufReader}};
-use directories::{UserDirs, ProjectDirs};
-use exif::{Tag, In};
+use directories::{ProjectDirs, UserDirs};
+use exif::{In, Tag};
 use futures_util::StreamExt;
+use std::{
+    fs::{self, File},
+    io::{self, BufReader, Write},
+    path::PathBuf,
+};
 
-use image::{imageops, ImageFormat, DynamicImage};
-use serde::{Serialize, Deserialize};
+use image::{imageops, DynamicImage, ImageFormat};
+use paddleocr::Ppocr;
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
 pub struct OcrResult {
@@ -25,7 +30,6 @@ pub enum OcrError {
     NotSupportPlatform,
     NotDetectd,
 }
-
 
 pub fn check_if_ocr_lib_downloaded() -> bool {
     match get_ocr_path() {
@@ -121,7 +125,7 @@ pub fn unzip_ocr_lib(zip_path: PathBuf, to: PathBuf) -> i32 {
     0
 }
 
-pub fn detect_image_thermal_ocr(path: &str) -> Result<f32, OcrError> {
+pub fn detect_image_thermal_ocr(path: &str) -> Result<f64, OcrError> {
     if cfg!(target_os = "linux") {
         return Err(OcrError::NotSupportPlatform);
     }
@@ -134,9 +138,6 @@ pub fn detect_image_thermal_ocr(path: &str) -> Result<f32, OcrError> {
             "{}",
             ppocr_dirs.clone().into_os_string().into_string().unwrap()
         );
-        // Lin: /home/alice/.config/barapp
-        // Win: C:\Users\Alice\AppData\Roaming\Foo Corp\Bar App\config
-        // Mac: /Users/Alice/Library/Application Support/com.Foo-Corp.Bar-App
         let mut p = paddleocr::Ppocr::new(ppocr_dirs).unwrap();
         let ret = p.ocr(path).unwrap();
         match serde_json::from_str::<OcrResult>(&ret) {
@@ -145,14 +146,14 @@ pub fn detect_image_thermal_ocr(path: &str) -> Result<f32, OcrError> {
                     return Err(OcrError::NotFound);
                 }
                 for data in &v.data {
-                    match data.text.parse::<f32>() {
+                    match data.text.parse::<f64>() {
                         Ok(text) => {
                             if text > 100.0 {
-                                return Ok(text/10.0);
+                                return Ok(text / 10.0);
                             } else {
                                 return Ok(text);
                             }
-                        },
+                        }
                         Err(_) => continue,
                     }
                 }
@@ -164,6 +165,54 @@ pub fn detect_image_thermal_ocr(path: &str) -> Result<f32, OcrError> {
         // println!("{}", ret);
     }
     Err(OcrError::NotFound)
+}
+
+pub fn init_ppocr() -> Result<Ppocr, OcrError> {
+    if cfg!(target_os = "linux") {
+        return Err(OcrError::NotSupportPlatform);
+    }
+    if cfg!(target_os = "macos") {
+        return Err(OcrError::NotSupportPlatform);
+    }
+    if let Some(proj_dirs) = ProjectDirs::from("com", "com.miaostay.itmpc", "PaddleOCR-json") {
+        let ppocr_dirs = proj_dirs.data_local_dir().join("PaddleOCR_json.exe");
+        println!(
+            "{}",
+            ppocr_dirs.clone().into_os_string().into_string().unwrap()
+        );
+        let p: paddleocr::Ppocr = paddleocr::Ppocr::new(ppocr_dirs).unwrap();
+        return Ok(p);
+    } else {
+        return Err(OcrError::NotFound);
+    }
+}
+
+pub fn detect_image_thermal_ocr_with_ppocr(
+    p: &mut paddleocr::Ppocr,
+    path: &str,
+) -> Result<f64, OcrError> {
+    let ret = p.ocr(path).unwrap();
+    match serde_json::from_str::<OcrResult>(&ret) {
+        Ok(v) => {
+            if v.code != 100 {
+                return Err(OcrError::NotFound);
+            }
+            for data in &v.data {
+                match data.text.parse::<f64>() {
+                    Ok(text) => {
+                        if text > 100.0 {
+                            return Ok(text / 10.0);
+                        } else {
+                            return Ok(text);
+                        }
+                    }
+                    Err(_) => continue,
+                }
+            }
+            return Err(OcrError::NotFound);
+        }
+        Err(_) => return Err(OcrError::NotFound),
+    }
 }
 
 fn rotate_image(input_path: &PathBuf) -> Result<image::ImageBuffer<image::Rgba<u8>, Vec<u8>>, ()> {
@@ -182,34 +231,23 @@ fn rotate_image(input_path: &PathBuf) -> Result<image::ImageBuffer<image::Rgba<u
         Err(_) => {
             println!("cannot get exif");
             return Ok((&mut img).clone().into_rgba8());
-        },
+        }
     };
     match exif.get_field(Tag::Orientation, In::PRIMARY) {
         Some(orientation) => match orientation.value.get_uint(0) {
-            Some(v @ 1) => {
-                Ok((&mut img).clone().into_rgba8())
-            }
-            Some(v @ 3) => {
-                Ok(imageops::rotate180(&mut img))
-
-            }
-            Some(v @ 6) => {
-                Ok(imageops::rotate90(&mut img))
-
-            }
-            Some(v @ 8) => {
-                Ok(imageops::rotate270(&mut img))
-
-            }
+            Some(v @ 1) => Ok((&mut img).clone().into_rgba8()),
+            Some(v @ 3) => Ok(imageops::rotate180(&mut img)),
+            Some(v @ 6) => Ok(imageops::rotate90(&mut img)),
+            Some(v @ 8) => Ok(imageops::rotate270(&mut img)),
             _ => {
                 println!("cannot match orientation");
                 Ok((&mut img).clone().into_rgba8())
-            },
+            }
         },
         None => {
             println!("cannot get field");
             Ok((&mut img).clone().into_rgba8())
-        },
+        }
     }
 }
 
@@ -226,14 +264,12 @@ pub fn clip_picture(input_path: &PathBuf, output_path: &PathBuf) -> Result<(), (
                 Err(_) => {
                     println!("Subimg error");
                     Err(())
-                },
+                }
             }
-        },
+        }
         Err(_) => {
             println!("rotate_image error");
-            return Err(())
-        },
+            return Err(());
+        }
     }
-
-
 }

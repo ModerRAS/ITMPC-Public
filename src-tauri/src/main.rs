@@ -4,6 +4,7 @@
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
+use std::collections::HashMap;
 use std::env;
 use std::fs;
 
@@ -38,7 +39,8 @@ fn main() {
             read_thermal,
             prepare_ocr_lib,
             get_excel_lines,
-            write_to_excel
+            write_to_excel,
+            read_thermals
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -93,7 +95,21 @@ fn copy_file(from: &str, to: &str) -> Result<u64, String> {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-fn read_thermal(image_path: &str) -> Result<f32, ()> {
+fn read_thermals(image_paths: Vec<String>) -> Result<HashMap<String, f64>, ()> {
+    match init_ppocr() {
+        Ok(mut p) => return Ok(image_paths.iter().map(|image_path| {
+            match detect_image_thermal_ocr_with_ppocr(&mut p, image_path.as_str()) {
+                Ok(t) => return (image_path.clone().to_string(), t),
+                Err(_) => return (image_path.clone().to_string(), -99_999f64),
+            }
+        }).collect()),
+        Err(_) => Err(()),
+    }
+
+}
+
+#[tauri::command(rename_all = "snake_case")]
+fn read_thermal(image_path: &str) -> Result<f64, ()> {
     let temp_dir = env::temp_dir();
     let rng = RNG::try_from(&Language::Elven).unwrap();
 
