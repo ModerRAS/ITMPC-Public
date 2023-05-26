@@ -198,6 +198,7 @@ pub fn detect_image_thermal_ocr_with_ppocr(
                 return Err(OcrError::NotFound);
             }
             for data in &v.data {
+                println!("{}", data.text);
                 match data.text.parse::<f64>() {
                     Ok(text) => {
                         if text > 100.0 {

@@ -98,10 +98,34 @@ fn copy_file(from: &str, to: &str) -> Result<u64, String> {
 fn read_thermals(image_paths: Vec<String>) -> Result<HashMap<String, f64>, ()> {
     match init_ppocr() {
         Ok(mut p) => return Ok(image_paths.iter().map(|image_path| {
-            match detect_image_thermal_ocr_with_ppocr(&mut p, image_path.as_str()) {
-                Ok(t) => return (image_path.clone().to_string(), t),
-                Err(_) => return (image_path.clone().to_string(), -99_999f64),
-            }
+            let temp_dir = env::temp_dir();
+            let rng = RNG::try_from(&Language::Elven).unwrap();
+        
+            let temp_name = rng.generate_name();
+            let output_path = temp_dir.join(temp_name + ".jpg");
+            match clip_picture(&PathBuf::from(image_path), &output_path) {
+                Ok(_) => match detect_image_thermal_ocr_with_ppocr(&mut p, output_path
+                    .clone()
+                    .into_os_string()
+                    .into_string()
+                    .unwrap()
+                    .as_str(),) {
+                    Ok(t) => {
+                        match fs::remove_file(&output_path) {
+                            Ok(_) | Err(_) => return (image_path.clone().to_string(), t),
+                        };
+                    },
+                    Err(_) => return (image_path.clone().to_string(), -99_999f64),
+                }
+                Err(e) => match fs::remove_file(&output_path) {
+                    Ok(_) | Err(_) => {
+                        println!("{:?}", e);
+                        return (image_path.clone().to_string(), -99_999f64);
+                    },
+                },
+            };
+
+
         }).collect()),
         Err(_) => Err(()),
     }
