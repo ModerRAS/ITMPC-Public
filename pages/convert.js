@@ -91,8 +91,13 @@ async function StartConvert(SourceFolderFiles, TargetFolder, TargetFileNames, Ex
       let ret = await invoke("read_thermals", { image_paths: SourceFolderFiles })
       console.log(`Thermal is :`)
       console.log(ret)
-      Thermal = new Map(Object.entries(ret));
-      console.log(Thermal)
+      const Thermal_temp = new Map(Object.entries(ret));
+      for (let index = 0; index < TargetFileNames.length; index++) {
+        const TargetFileName = TargetFileNames[index];
+        const SourceFilePath = SourceFolderFiles[index];
+        Thermal.set(TargetFileName, Thermal_temp.get(SourceFilePath))
+      }
+
     } catch (error) {
       console.log(`Error is: ${error}`)
     }

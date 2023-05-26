@@ -16,7 +16,6 @@ pub struct ExcelData {
     normal_corresponding_point_temperature: f64,
     emissivity: f64,
     ambient_temperature: f64,
-    temperature_difference: f64,
     temperature_rise: f64,
     distance: f64,
     load_current: f64
@@ -50,7 +49,6 @@ fn write_excel_line(
         thermal,
         emissivity,
         ambient_temperature,
-        temperature_difference,
         temperature_rise,
         distance,
         load_current,
@@ -60,16 +58,26 @@ fn write_excel_line(
     worksheet.write(row, 0, id).unwrap();
     worksheet.write(row, 1, interval_name).unwrap();
     worksheet.write(row, 2, device_name).unwrap();
-    worksheet.write(row, 4, voltage_level).unwrap();
+    worksheet.write(row, 4, &voltage_level).unwrap();
     worksheet.write(row, 10, measurement_image).unwrap();
-    worksheet.write(row, 14, distance).unwrap();
+    worksheet.write(row, 14, if distance == 1f64 {
+        if voltage_level.starts_with("直流") {
+            9f64
+        } else {
+            match voltage_level.as_str() {
+                "交流1000kV" => 9f64,
+                "交流500kV" => 6f64,
+                _ => 3f64
+            }
+        }
+    } else {distance}).unwrap();
     worksheet.write(row, 15, thermal).unwrap();
     worksheet.write(row, 16, if normal_corresponding_point_temperature == -99999f64 && thermal !=-99999f64 {thermal} else {normal_corresponding_point_temperature}).unwrap();
-    worksheet.write(row, 17, if temperature_rise == -99999f64 && ambient_temperature != -99999f64 && thermal != -99999f64 {(ambient_temperature - thermal).abs()} else {temperature_difference}).unwrap();
     worksheet.write(row, 18, if temperature_rise == -99999f64 && ambient_temperature != -99999f64 && thermal != -99999f64 {ambient_temperature - thermal} else {temperature_rise}).unwrap();
     worksheet.write(row, 19, ambient_temperature).unwrap();
     worksheet.write(row, 20, emissivity).unwrap();
     worksheet.write(row, 21, load_current).unwrap();
+    worksheet.write(row, 23, "正常").unwrap();
 }
 
 #[tauri::command(rename_all = "snake_case")]
@@ -90,10 +98,9 @@ pub fn get_excel_lines(excel_path: &str) -> Result<Vec<ExcelData>, String> {
                             device_name: row[2].get_string().unwrap_or_default().to_string().replace("/", "").replace("\\", "").replace("?", "").replace("*", ""),
                             voltage_level: row[4].get_string().unwrap_or_default().to_string(),
                             measurement_image: format!("{}.jpg", row[2].get_string().unwrap_or_default().to_string().replace("/", "").replace("\\", "").replace("?", "").replace("*", "")),
-                            distance: row[14].get_float().unwrap_or(1.0f64),
+                            distance: row[14].get_float().unwrap_or(1f64),
                             thermal: row[15].get_float().unwrap_or(-99999f64),
                             normal_corresponding_point_temperature: row[16].get_float().unwrap_or(-99999f64),
-                            temperature_difference: row[17].get_float().unwrap_or(-99999f64),
                             temperature_rise: row[18].get_float().unwrap_or(-99999f64),
                             ambient_temperature: row[19].get_float().unwrap_or(-99999f64),
                             emissivity: row[20].get_float().unwrap_or(0.9f64),
