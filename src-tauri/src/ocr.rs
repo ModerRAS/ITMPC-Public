@@ -7,9 +7,15 @@ use std::{
     path::PathBuf,
 };
 
-use image::{imageops, DynamicImage, ImageFormat};
+use image::{imageops, DynamicImage, GenericImageView, ImageFormat};
 use paddleocr::Ppocr;
 use serde::{Deserialize, Serialize};
+
+use colors_transform::{AlphaColor, Color, Hsl, Rgb};
+
+use lazy_static::lazy_static;
+
+use regex::Regex;
 
 #[derive(Deserialize)]
 pub struct OcrResult {
@@ -125,6 +131,23 @@ pub fn unzip_ocr_lib(zip_path: PathBuf, to: PathBuf) -> i32 {
     0
 }
 
+fn detect_number(v: OcrResult) -> f64 {
+    let mut max = -99999f64;
+    lazy_static! {
+        static ref RE: Regex = Regex::new(r"[0-9.]*").unwrap();
+    }
+
+    for data in &v.data {
+        println!("{}", data.text);
+        let _out: Vec<f64> = RE.find_iter(data.text.as_str()).map(|mat| {
+            max = max.max(mat.as_str().parse::<f64>().unwrap_or(-99999f64));
+            max
+        }).collect();
+        println!("{:?}", _out);
+    }
+    return max;
+}
+
 pub fn detect_image_thermal_ocr(path: &str) -> Result<f64, OcrError> {
     if cfg!(target_os = "linux") {
         return Err(OcrError::NotSupportPlatform);
@@ -145,23 +168,12 @@ pub fn detect_image_thermal_ocr(path: &str) -> Result<f64, OcrError> {
                 if v.code != 100 {
                     return Err(OcrError::NotFound);
                 }
-                for data in &v.data {
-                    match data.text.parse::<f64>() {
-                        Ok(text) => {
-                            if text > 100.0 {
-                                return Ok(text / 10.0);
-                            } else {
-                                return Ok(text);
-                            }
-                        }
-                        Err(_) => continue,
-                    }
-                }
+
+                return Ok(detect_number(v));
             }
             Err(_) => return Err(OcrError::NotFound),
         }
 
-        return Err(OcrError::NotDetectd);
         // println!("{}", ret);
     }
     Err(OcrError::NotFound)
@@ -197,20 +209,7 @@ pub fn detect_image_thermal_ocr_with_ppocr(
             if v.code != 100 {
                 return Err(OcrError::NotFound);
             }
-            for data in &v.data {
-                println!("{}", data.text);
-                match data.text.parse::<f64>() {
-                    Ok(text) => {
-                        if text > 100.0 {
-                            return Ok(text / 10.0);
-                        } else {
-                            return Ok(text);
-                        }
-                    }
-                    Err(_) => continue,
-                }
-            }
-            return Err(OcrError::NotFound);
+            return Ok(detect_number(v));
         }
         Err(_) => return Err(OcrError::NotFound),
     }
@@ -255,7 +254,8 @@ fn rotate_image(input_path: &PathBuf) -> Result<image::ImageBuffer<image::Rgba<u
 pub fn clip_picture(input_path: &PathBuf, output_path: &PathBuf) -> Result<(), ()> {
     match rotate_image(input_path) {
         Ok(mut img) => {
-            let subimg = imageops::crop(&mut img, 0, 0, 145, 60);
+            binary_picture(&mut img);
+            let subimg = imageops::crop(&mut img, 0, 0, 145, 100);
             // subimg.get_pixel(0, 0)
             match subimg
                 .to_image()
@@ -274,3 +274,28 @@ pub fn clip_picture(input_path: &PathBuf, output_path: &PathBuf) -> Result<(), (
         }
     }
 }
+
+fn binary_picture(img: &mut image::ImageBuffer<image::Rgba<u8>, Vec<u8>>) {
+    for (x, y, pixel) in img.enumerate_pixels_mut() {
+        let mut hsl_color = Rgb::from(
+            f32::from(pixel[0]),
+            f32::from(pixel[1]),
+            f32::from(pixel[2]),
+        )
+        .to_hsl();
+        if hsl_color.get_lightness() > 65f32 {
+            hsl_color = hsl_color.set_lightness(0f32);
+        } else {
+            hsl_color = hsl_color.set_lightness(100f32);
+        }
+        let rgb_color = hsl_color.to_rgb();
+        *pixel = image::Rgba([rgb_color.get_red() as u8, rgb_color.get_green() as u8, rgb_color.get_blue() as u8, pixel[3]]);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+
+    use super::clip_picture;
+

@@ -111,9 +111,10 @@ fn read_thermals(image_paths: Vec<String>) -> Result<HashMap<String, f64>, ()> {
                     .unwrap()
                     .as_str(),) {
                     Ok(t) => {
-                        match fs::remove_file(&output_path) {
-                            Ok(_) | Err(_) => return (image_path.clone().to_string(), t),
-                        };
+                        // match fs::remove_file(&output_path) {
+                        //     Ok(_) | Err(_) => return (image_path.clone().to_string(), t),
+                        // };
+                        return (image_path.clone().to_string(), t);
                     },
                     Err(_) => return (image_path.clone().to_string(), -99_999f64),
                 }
