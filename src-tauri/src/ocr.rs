@@ -7,11 +7,11 @@ use std::{
     path::PathBuf,
 };
 
-use image::{imageops, DynamicImage, GenericImageView, ImageFormat};
+use image::{imageops, ImageFormat};
 use paddleocr::Ppocr;
 use serde::{Deserialize, Serialize};
 
-use colors_transform::{AlphaColor, Color, Hsl, Rgb};
+use colors_transform::{Color, Rgb};
 
 use lazy_static::lazy_static;
 
@@ -52,7 +52,9 @@ pub async fn download_files(url: &str, path: PathBuf) -> Result<(), ()> {
 
     while let Some(chunk_result) = stream.next().await {
         let chunk = chunk_result.unwrap();
-        file.write_all(&chunk);
+        match file.write_all(&chunk) {
+            Ok(_) | Err(_)=> continue
+        };
     }
 
     file.flush().unwrap();
@@ -174,7 +176,6 @@ pub fn detect_image_thermal_ocr(path: &str) -> Result<f64, OcrError> {
             Err(_) => return Err(OcrError::NotFound),
         }
 
-        // println!("{}", ret);
     }
     Err(OcrError::NotFound)
 }
@@ -235,10 +236,10 @@ fn rotate_image(input_path: &PathBuf) -> Result<image::ImageBuffer<image::Rgba<u
     };
     match exif.get_field(Tag::Orientation, In::PRIMARY) {
         Some(orientation) => match orientation.value.get_uint(0) {
-            Some(v @ 1) => Ok((&mut img).clone().into_rgba8()),
-            Some(v @ 3) => Ok(imageops::rotate180(&mut img)),
-            Some(v @ 6) => Ok(imageops::rotate90(&mut img)),
-            Some(v @ 8) => Ok(imageops::rotate270(&mut img)),
+            Some(_v @ 1) => Ok((&mut img).clone().into_rgba8()),
+            Some(_v @ 3) => Ok(imageops::rotate180(&mut img)),
+            Some(_v @ 6) => Ok(imageops::rotate90(&mut img)),
+            Some(_v @ 8) => Ok(imageops::rotate270(&mut img)),
             _ => {
                 println!("cannot match orientation");
                 Ok((&mut img).clone().into_rgba8())
@@ -276,7 +277,7 @@ pub fn clip_picture(input_path: &PathBuf, output_path: &PathBuf) -> Result<(), (
 }
 
 fn binary_picture(img: &mut image::ImageBuffer<image::Rgba<u8>, Vec<u8>>) {
-    for (x, y, pixel) in img.enumerate_pixels_mut() {
+    for (_x,_yy, pixel) in img.enumerate_pixels_mut() {
         let mut hsl_color = Rgb::from(
             f32::from(pixel[0]),
             f32::from(pixel[1]),
@@ -292,4 +293,3 @@ fn binary_picture(img: &mut image::ImageBuffer<image::Rgba<u8>, Vec<u8>>) {
         *pixel = image::Rgba([rgb_color.get_red() as u8, rgb_color.get_green() as u8, rgb_color.get_blue() as u8, pixel[3]]);
     }
 }
-

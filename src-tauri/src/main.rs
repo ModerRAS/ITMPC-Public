@@ -76,7 +76,7 @@ fn read_directory(source: &str) -> Result<Vec<String>, String> {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-fn get_image_from_directory(source: &str) -> Result<Vec<String>, String> {
+async fn get_image_from_directory(source: &str) -> Result<Vec<String>, String> {
     match read_directory(source) {
         Ok(o) => Ok(o
             .into_iter()
@@ -87,7 +87,7 @@ fn get_image_from_directory(source: &str) -> Result<Vec<String>, String> {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-fn copy_file(from: &str, to: &str) -> Result<u64, String> {
+async fn copy_file(from: &str, to: &str) -> Result<u64, String> {
     match fs::copy(from, to) {
         Ok(o) => Ok(o),
         Err(e) => Err(e.to_string()),
@@ -100,7 +100,7 @@ async fn read_thermals(image_paths: Vec<String>) -> Result<HashMap<String, f64>,
         Ok(mut p) => return Ok(image_paths.iter().map(|image_path| {
             let temp_dir = env::temp_dir();
             let rng = RNG::try_from(&Language::Elven).unwrap();
-        
+
             let temp_name = rng.generate_name();
             let output_path = temp_dir.join(temp_name + ".jpg");
             match clip_picture(&PathBuf::from(image_path), &output_path) {
@@ -133,7 +133,7 @@ async fn read_thermals(image_paths: Vec<String>) -> Result<HashMap<String, f64>,
 }
 
 #[tauri::command(rename_all = "snake_case")]
-fn read_thermal(image_path: &str) -> Result<f64, ()> {
+async fn read_thermal(image_path: &str) -> Result<f64, ()> {
     let temp_dir = env::temp_dir();
     let rng = RNG::try_from(&Language::Elven).unwrap();
 

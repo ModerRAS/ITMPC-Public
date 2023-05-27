@@ -1,8 +1,5 @@
-use std::{vec, path::PathBuf};
-
 use calamine::{open_workbook_auto, Reader};
-use chrono::NaiveDate;
-use rust_xlsxwriter::{Format, FormatAlign, FormatBorder, Image, Workbook, Worksheet, XlsxError};
+use rust_xlsxwriter::{Workbook, Worksheet};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -147,12 +144,4 @@ pub async fn get_image_names(excel_path: &str) -> Result<Vec<String>, String> {
         }
         Err(e) => return Err(From::from(e.to_string())),
     };
-    // if let Some(result) = iter.next() {
-    //     let (label, value): (String, f64) = result?;
-    //     assert_eq!(label, "celsius");
-    //     assert_eq!(value, 22.2222);
-    //     Ok(vec!["1".to_string(), "2".to_string()])
-    // } else {
-    //     Err(From::from("expected at least one record but got none"))
-    // }
 }
