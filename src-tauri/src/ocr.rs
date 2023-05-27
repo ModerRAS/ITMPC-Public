@@ -293,9 +293,3 @@ fn binary_picture(img: &mut image::ImageBuffer<image::Rgba<u8>, Vec<u8>>) {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use std::path::PathBuf;
-
-    use super::clip_picture;
-
