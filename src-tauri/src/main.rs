@@ -95,7 +95,7 @@ fn copy_file(from: &str, to: &str) -> Result<u64, String> {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-fn read_thermals(image_paths: Vec<String>) -> Result<HashMap<String, f64>, ()> {
+async fn read_thermals(image_paths: Vec<String>) -> Result<HashMap<String, f64>, ()> {
     match init_ppocr() {
         Ok(mut p) => return Ok(image_paths.iter().map(|image_path| {
             let temp_dir = env::temp_dir();

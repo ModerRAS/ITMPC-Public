@@ -22,7 +22,7 @@ pub struct ExcelData {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-pub fn write_to_excel(excel_datas: Vec<ExcelData>, save_path: &str) -> Result<(), ()> {
+pub async fn write_to_excel(excel_datas: Vec<ExcelData>, save_path: &str) -> Result<(), ()> {
     let mut workbook: Workbook = Workbook::new();
     // Add a worksheet to the workbook.
     let worksheet = workbook.add_worksheet();
@@ -81,7 +81,7 @@ fn write_excel_line(
 }
 
 #[tauri::command(rename_all = "snake_case")]
-pub fn get_excel_lines(excel_path: &str) -> Result<Vec<ExcelData>, String> {
+pub async fn get_excel_lines(excel_path: &str) -> Result<Vec<ExcelData>, String> {
     let path = excel_path.to_string();
     let _workbook_result = match open_workbook_auto(path) {
         Ok(workbook) => {
@@ -122,7 +122,7 @@ pub fn get_excel_lines(excel_path: &str) -> Result<Vec<ExcelData>, String> {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-pub fn get_image_names(excel_path: &str) -> Result<Vec<String>, String> {
+pub async fn get_image_names(excel_path: &str) -> Result<Vec<String>, String> {
     let path = excel_path.to_string();
     let _workbook_result = match open_workbook_auto(path) {
         Ok(workbook) => {
