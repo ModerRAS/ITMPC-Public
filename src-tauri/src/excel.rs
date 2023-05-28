@@ -56,6 +56,7 @@ fn write_excel_line(
     worksheet.write(row, 1, interval_name).unwrap();
     worksheet.write(row, 2, device_name).unwrap();
     worksheet.write(row, 4, &voltage_level).unwrap();
+    worksheet.write(row, 9, "整体").unwrap();
     worksheet.write(row, 10, measurement_image).unwrap();
     worksheet.write(row, 14, if distance == 1f64 {
         if voltage_level.starts_with("直流") {
