@@ -71,7 +71,7 @@ fn write_excel_line(
     } else {distance}).unwrap();
     worksheet.write(row, 15, thermal).unwrap();
     worksheet.write(row, 16, if normal_corresponding_point_temperature == -99999f64 && thermal !=-99999f64 {thermal} else {normal_corresponding_point_temperature}).unwrap();
-    worksheet.write(row, 18, if temperature_rise == -99999f64 && ambient_temperature != -99999f64 && thermal != -99999f64 {ambient_temperature - thermal} else {temperature_rise}).unwrap();
+    worksheet.write(row, 18, if temperature_rise == -99999f64 && ambient_temperature != -99999f64 && thermal != -99999f64 {thermal - ambient_temperature} else {temperature_rise}).unwrap();
     worksheet.write(row, 19, ambient_temperature).unwrap();
     worksheet.write(row, 20, emissivity).unwrap();
     worksheet.write(row, 21, load_current).unwrap();
