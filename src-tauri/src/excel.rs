@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use calamine::{open_workbook_auto, Reader};
 use rust_xlsxwriter::{Workbook, Worksheet};
 use serde::{Deserialize, Serialize};
@@ -108,6 +110,76 @@ fn process_excel_data(
         distance: distance,
         load_current: load_current,
     };
+}
+
+fn fix_missing_field(source: Vec<ExcelData>, missing_field_data: Vec<ExcelData>) -> (Vec<ExcelData>, Vec<ExcelData>) {
+    let mut source_map = HashMap::new();
+    for s in source {
+        source_map.insert(s.device_name.clone(), s);
+    }
+    let mut matched_data: Vec<ExcelData> = Vec::new();
+    let mut unmatched_data: Vec<ExcelData> = Vec::new();
+    for r in missing_field_data {
+        match source_map.get(&r.device_name) {
+            Some(s) => {
+                matched_data.push(ExcelData {
+                    id: s.id,
+                    interval_name: s.interval_name.clone(),
+                    device_name: s.device_name.clone(),
+                    device_id: s.device_id.clone(),
+                    voltage_level: s.voltage_level.clone(),
+                    detection_point_id: s.detection_point_id.clone(),
+                    measurement_image: r.measurement_image.clone(),
+                    thermal: r.thermal,
+                    normal_corresponding_point_temperature: r.normal_corresponding_point_temperature,
+                    emissivity: r.emissivity,
+                    ambient_temperature: r.ambient_temperature,
+                    temperature_rise: r.temperature_rise,
+                    distance: r.distance,
+                    load_current: r.load_current,
+                })
+            },
+            None => {
+                unmatched_data.push(r.clone());
+            },
+        }
+    }
+    return (matched_data, unmatched_data);
+}
+
+fn rematch_excel_data(source: Vec<ExcelData>, rematch_data: Vec<ExcelData>) -> (Vec<ExcelData>, Vec<ExcelData>) {
+    let mut source_map = HashMap::new();
+    for s in source {
+        source_map.insert(s.device_id.clone(), s);
+    }
+    let mut matched_data: Vec<ExcelData> = Vec::new();
+    let mut unmatched_data: Vec<ExcelData> = Vec::new();
+    for r in rematch_data {
+        match source_map.get(&r.device_id) {
+            Some(s) => {
+                matched_data.push(ExcelData {
+                    id: s.id,
+                    interval_name: s.interval_name.clone(),
+                    device_name: s.device_name.clone(),
+                    device_id: s.device_id.clone(),
+                    voltage_level: s.voltage_level.clone(),
+                    detection_point_id: s.detection_point_id.clone(),
+                    measurement_image: r.measurement_image.clone(),
+                    thermal: r.thermal,
+                    normal_corresponding_point_temperature: r.normal_corresponding_point_temperature,
+                    emissivity: r.emissivity,
+                    ambient_temperature: r.ambient_temperature,
+                    temperature_rise: r.temperature_rise,
+                    distance: r.distance,
+                    load_current: r.load_current,
+                })
+            },
+            None => {
+                unmatched_data.push(r.clone());
+            },
+        }
+    }
+    return (matched_data, unmatched_data);
 }
 
 fn write_excel_line(
