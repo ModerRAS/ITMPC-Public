@@ -7,7 +7,9 @@ pub struct ExcelData {
     id: f64,
     interval_name: String,
     device_name: String,
+    device_id: String,
     voltage_level: String,
+    detection_point_id: String,
     measurement_image: String,
     thermal: f64,
     normal_corresponding_point_temperature: f64,
@@ -15,7 +17,7 @@ pub struct ExcelData {
     ambient_temperature: f64,
     temperature_rise: f64,
     distance: f64,
-    load_current: f64
+    load_current: f64,
 }
 
 #[tauri::command(rename_all = "snake_case")]
@@ -25,12 +27,86 @@ pub async fn write_to_excel(excel_datas: Vec<ExcelData>, save_path: &str) -> Res
     let worksheet = workbook.add_worksheet();
 
     for (i, data) in excel_datas.iter().enumerate() {
-        write_excel_line(worksheet, u32::try_from(i).unwrap(), data.clone());
+        write_excel_line(worksheet, u32::try_from(i).unwrap(), process_excel_data(data.clone()));
     }
 
     match workbook.save(save_path) {
-            Ok(_) => return Ok(()),
-            Err(_) => return Err(()),
+        Ok(_) => return Ok(()),
+        Err(_) => return Err(()),
+    };
+}
+
+fn process_excel_data(
+    ExcelData {
+        id,
+        interval_name,
+        device_name,
+        device_id,
+        voltage_level,
+        detection_point_id,
+        measurement_image,
+        thermal,
+        normal_corresponding_point_temperature,
+        emissivity,
+        ambient_temperature,
+        temperature_rise,
+        distance,
+        load_current,
+    }: ExcelData,
+) -> ExcelData {
+    let distance = if voltage_level.starts_with("直流") {
+        9f64
+    } else {
+        match voltage_level.as_str() {
+            "交流1000kV" => 9f64,
+            "交流500kV" => 6f64,
+            _ => 3f64,
+        }
+    };
+
+    let normal_corresponding_point_temperature =
+        if normal_corresponding_point_temperature == -99999f64 && thermal != -99999f64 {
+            thermal
+        } else {
+            normal_corresponding_point_temperature
+        };
+
+    let temperature_rise = if temperature_rise == -99999f64
+        && ambient_temperature != -99999f64
+        && thermal != -99999f64
+    {
+        thermal - ambient_temperature
+    } else {
+        temperature_rise
+    };
+
+    let emissivity = if emissivity == -99999f64 {
+        0.9
+    } else {
+        emissivity
+    };
+
+    let load_current = if load_current == -99999f64 {
+        0f64
+    } else {
+        load_current
+    };
+
+    return ExcelData {
+        id: id,
+        interval_name: interval_name,
+        device_name: device_name,
+        device_id: device_id,
+        voltage_level: voltage_level,
+        detection_point_id: detection_point_id,
+        measurement_image: measurement_image,
+        thermal: thermal,
+        normal_corresponding_point_temperature: normal_corresponding_point_temperature,
+        emissivity: emissivity,
+        ambient_temperature: ambient_temperature,
+        temperature_rise: temperature_rise,
+        distance: distance,
+        load_current: load_current,
     };
 }
 
@@ -50,28 +126,24 @@ fn write_excel_line(
         distance,
         load_current,
         normal_corresponding_point_temperature,
+        device_id,
+        detection_point_id,
     }: ExcelData,
 ) {
     worksheet.write(row, 0, id).unwrap();
     worksheet.write(row, 1, interval_name).unwrap();
     worksheet.write(row, 2, device_name).unwrap();
+    worksheet.write(row, 3, device_id).unwrap();
     worksheet.write(row, 4, &voltage_level).unwrap();
+    worksheet.write(row, 7, detection_point_id).unwrap();
     worksheet.write(row, 9, "整体").unwrap();
     worksheet.write(row, 10, measurement_image).unwrap();
-    worksheet.write(row, 14, if distance == 1f64 {
-        if voltage_level.starts_with("直流") {
-            9f64
-        } else {
-            match voltage_level.as_str() {
-                "交流1000kV" => 9f64,
-                "交流500kV" => 6f64,
-                _ => 3f64
-            }
-        }
-    } else {distance}).unwrap();
+    worksheet.write(row, 14, distance).unwrap();
     worksheet.write(row, 15, thermal).unwrap();
-    worksheet.write(row, 16, if normal_corresponding_point_temperature == -99999f64 && thermal !=-99999f64 {thermal} else {normal_corresponding_point_temperature}).unwrap();
-    worksheet.write(row, 18, if temperature_rise == -99999f64 && ambient_temperature != -99999f64 && thermal != -99999f64 {thermal - ambient_temperature} else {temperature_rise}).unwrap();
+    worksheet
+        .write(row, 16, normal_corresponding_point_temperature)
+        .unwrap();
+    worksheet.write(row, 18, temperature_rise).unwrap();
     worksheet.write(row, 19, ambient_temperature).unwrap();
     worksheet.write(row, 20, emissivity).unwrap();
     worksheet.write(row, 21, load_current).unwrap();
@@ -93,16 +165,36 @@ pub async fn get_excel_lines(excel_path: &str) -> Result<Vec<ExcelData>, String>
                         data.push(ExcelData {
                             id: row[0].get_float().unwrap_or_default(),
                             interval_name: row[1].get_string().unwrap_or_default().to_string(),
-                            device_name: row[2].get_string().unwrap_or_default().to_string().replace("/", "").replace("\\", "").replace("?", "").replace("*", ""),
+                            device_name: row[2].get_string().unwrap_or_default().to_string(),
+                            device_id: row[3].get_string().unwrap_or_default().to_string(),
                             voltage_level: row[4].get_string().unwrap_or_default().to_string(),
-                            measurement_image: format!("{}.jpg", row[2].get_string().unwrap_or_default().to_string().replace("/", "").replace("\\", "").replace("?", "").replace("*", "")),
-                            distance: row[14].get_float().unwrap_or(1f64),
+                            detection_point_id: row[7].get_string().unwrap_or_default().to_string(),
+                            measurement_image: row[10]
+                                .get_string()
+                                .unwrap_or(
+                                    format!(
+                                        "{}.jpg",
+                                        row[2]
+                                            .get_string()
+                                            .unwrap_or_default()
+                                            .to_string()
+                                            .replace("/", "")
+                                            .replace("\\", "")
+                                            .replace("?", "")
+                                            .replace("*", "")
+                                    )
+                                    .as_str(),
+                                )
+                                .to_string(),
+                            distance: row[14].get_float().unwrap_or(-99999f64),
                             thermal: row[15].get_float().unwrap_or(-99999f64),
-                            normal_corresponding_point_temperature: row[16].get_float().unwrap_or(-99999f64),
+                            normal_corresponding_point_temperature: row[16]
+                                .get_float()
+                                .unwrap_or(-99999f64),
                             temperature_rise: row[18].get_float().unwrap_or(-99999f64),
                             ambient_temperature: row[19].get_float().unwrap_or(-99999f64),
-                            emissivity: row[20].get_float().unwrap_or(0.9f64),
-                            load_current: row[21].get_float().unwrap_or(0f64),
+                            emissivity: row[20].get_float().unwrap_or(-99999f64),
+                            load_current: row[21].get_float().unwrap_or(-99999f64),
                         });
                         println!(
                             "row[0] = {:?}\trow[2]={:?}\trow[4]={:?}",
