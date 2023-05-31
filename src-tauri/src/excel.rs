@@ -4,7 +4,14 @@ use calamine::{open_workbook_auto, Reader};
 use rust_xlsxwriter::{Workbook, Worksheet};
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Serialize, Deserialize)]
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct MatchedData {
+    matched: Vec<ExcelData>,
+    unmatched: Vec<ExcelData>
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct ExcelData {
     id: f64,
     interval_name: String,
@@ -29,7 +36,11 @@ pub async fn write_to_excel(excel_datas: Vec<ExcelData>, save_path: &str) -> Res
     let worksheet = workbook.add_worksheet();
 
     for (i, data) in excel_datas.iter().enumerate() {
-        write_excel_line(worksheet, u32::try_from(i).unwrap(), process_excel_data(data.clone()));
+        write_excel_line(
+            worksheet,
+            u32::try_from(i).unwrap(),
+            process_excel_data(data.clone()),
+        );
     }
 
     match workbook.save(save_path) {
@@ -112,7 +123,10 @@ fn process_excel_data(
     };
 }
 
-fn fix_missing_field(source: Vec<ExcelData>, missing_field_data: Vec<ExcelData>) -> (Vec<ExcelData>, Vec<ExcelData>) {
+fn fix_missing_field(
+    source: Vec<ExcelData>,
+    missing_field_data: Vec<ExcelData>,
+) -> MatchedData {
     let mut source_map = HashMap::new();
     for s in source {
         source_map.insert(s.device_name.clone(), s);
@@ -121,33 +135,37 @@ fn fix_missing_field(source: Vec<ExcelData>, missing_field_data: Vec<ExcelData>)
     let mut unmatched_data: Vec<ExcelData> = Vec::new();
     for r in missing_field_data {
         match source_map.get(&r.device_name) {
-            Some(s) => {
-                matched_data.push(ExcelData {
-                    id: s.id,
-                    interval_name: s.interval_name.clone(),
-                    device_name: s.device_name.clone(),
-                    device_id: s.device_id.clone(),
-                    voltage_level: s.voltage_level.clone(),
-                    detection_point_id: s.detection_point_id.clone(),
-                    measurement_image: r.measurement_image.clone(),
-                    thermal: r.thermal,
-                    normal_corresponding_point_temperature: r.normal_corresponding_point_temperature,
-                    emissivity: r.emissivity,
-                    ambient_temperature: r.ambient_temperature,
-                    temperature_rise: r.temperature_rise,
-                    distance: r.distance,
-                    load_current: r.load_current,
-                })
-            },
+            Some(s) => matched_data.push(ExcelData {
+                id: s.id,
+                interval_name: s.interval_name.clone(),
+                device_name: s.device_name.clone(),
+                device_id: s.device_id.clone(),
+                voltage_level: s.voltage_level.clone(),
+                detection_point_id: s.detection_point_id.clone(),
+                measurement_image: r.measurement_image.clone(),
+                thermal: r.thermal,
+                normal_corresponding_point_temperature: r.normal_corresponding_point_temperature,
+                emissivity: r.emissivity,
+                ambient_temperature: r.ambient_temperature,
+                temperature_rise: r.temperature_rise,
+                distance: r.distance,
+                load_current: r.load_current,
+            }),
             None => {
                 unmatched_data.push(r.clone());
-            },
+            }
         }
     }
-    return (matched_data, unmatched_data);
+    return MatchedData {
+        matched: matched_data,
+        unmatched: unmatched_data
+    };
 }
 
-fn rematch_excel_data(source: Vec<ExcelData>, rematch_data: Vec<ExcelData>) -> (Vec<ExcelData>, Vec<ExcelData>) {
+fn rematch_excel_data(
+    source: Vec<ExcelData>,
+    rematch_data: Vec<ExcelData>,
+) -> MatchedData {
     let mut source_map = HashMap::new();
     for s in source {
         source_map.insert(s.device_id.clone(), s);
@@ -156,30 +174,31 @@ fn rematch_excel_data(source: Vec<ExcelData>, rematch_data: Vec<ExcelData>) -> (
     let mut unmatched_data: Vec<ExcelData> = Vec::new();
     for r in rematch_data {
         match source_map.get(&r.device_id) {
-            Some(s) => {
-                matched_data.push(ExcelData {
-                    id: s.id,
-                    interval_name: s.interval_name.clone(),
-                    device_name: s.device_name.clone(),
-                    device_id: s.device_id.clone(),
-                    voltage_level: s.voltage_level.clone(),
-                    detection_point_id: s.detection_point_id.clone(),
-                    measurement_image: r.measurement_image.clone(),
-                    thermal: r.thermal,
-                    normal_corresponding_point_temperature: r.normal_corresponding_point_temperature,
-                    emissivity: r.emissivity,
-                    ambient_temperature: r.ambient_temperature,
-                    temperature_rise: r.temperature_rise,
-                    distance: r.distance,
-                    load_current: r.load_current,
-                })
-            },
+            Some(s) => matched_data.push(ExcelData {
+                id: s.id,
+                interval_name: s.interval_name.clone(),
+                device_name: s.device_name.clone(),
+                device_id: s.device_id.clone(),
+                voltage_level: s.voltage_level.clone(),
+                detection_point_id: s.detection_point_id.clone(),
+                measurement_image: r.measurement_image.clone(),
+                thermal: r.thermal,
+                normal_corresponding_point_temperature: r.normal_corresponding_point_temperature,
+                emissivity: r.emissivity,
+                ambient_temperature: r.ambient_temperature,
+                temperature_rise: r.temperature_rise,
+                distance: r.distance,
+                load_current: r.load_current,
+            }),
             None => {
                 unmatched_data.push(r.clone());
-            },
+            }
         }
     }
-    return (matched_data, unmatched_data);
+    return MatchedData {
+        matched: matched_data,
+        unmatched: unmatched_data
+    };
 }
 
 fn write_excel_line(
@@ -309,4 +328,155 @@ pub async fn get_image_names(excel_path: &str) -> Result<Vec<String>, String> {
         }
         Err(e) => return Err(From::from(e.to_string())),
     };
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::excel::fix_missing_field;
+
+    use super::{ExcelData, rematch_excel_data};
+
+    #[test]
+    fn test_rematch_excel_data() {
+        let s_data_1 = ExcelData {
+            id: 1.0,
+            interval_name: "todo!()".to_string(),
+            device_name: "todo!()".to_string(),
+            device_id: "todo!()".to_string(),
+            voltage_level: "交流220kV".to_string(),
+            detection_point_id: "todo!()".to_string(),
+            measurement_image: "todo!()".to_string(),
+            thermal: 10.0,
+            normal_corresponding_point_temperature: -99999f64,
+            emissivity: 0.9,
+            ambient_temperature: 20.0,
+            temperature_rise: -99999f64,
+            distance: -99999f64,
+            load_current: 0.0,
+        };
+        let s_data_2 = ExcelData {
+            id: 2.0,
+            interval_name: "todo!()".to_string(),
+            device_name: "todo!()3".to_string(),
+            device_id: "todo!()".to_string(),
+            voltage_level: "交流220kV".to_string(),
+            detection_point_id: "todo!()".to_string(),
+            measurement_image: "todo!()".to_string(),
+            thermal: 10.0,
+            normal_corresponding_point_temperature: -99999f64,
+            emissivity: 0.9,
+            ambient_temperature: 20.0,
+            temperature_rise: -99999f64,
+            distance: -99999f64,
+            load_current: 0.0,
+        };
+        let r_data_1 = ExcelData {
+            id: 1.0,
+            interval_name: "todo!()".to_string(),
+            device_name: "todo!()".to_string(),
+            device_id: "todo!()".to_string(),
+            voltage_level: "交流220kV".to_string(),
+            detection_point_id: "todo!()4".to_string(),
+            measurement_image: "todo!()".to_string(),
+            thermal: 10.0,
+            normal_corresponding_point_temperature: -99999f64,
+            emissivity: 0.9,
+            ambient_temperature: 20.0,
+            temperature_rise: -99999f64,
+            distance: -99999f64,
+            load_current: 0.0,
+        };
+        let r_data_2 = ExcelData {
+            id: 3.0,
+            interval_name: "todo!()2".to_string(),
+            device_name: "todo!()3".to_string(),
+            device_id: "".to_string(),
+            voltage_level: "交流220kV".to_string(),
+            detection_point_id: "".to_string(),
+            measurement_image: "todo!()".to_string(),
+            thermal: 10.0,
+            normal_corresponding_point_temperature: -99999f64,
+            emissivity: 0.9,
+            ambient_temperature: 20.0,
+            temperature_rise: -99999f64,
+            distance: -99999f64,
+            load_current: 0.0,
+        };
+        let source = vec![s_data_1, s_data_2];
+        let rematch_data = vec![r_data_1, r_data_2];
+        let data = rematch_excel_data(source, rematch_data);
+        println!("{:?}", data);
+    }
+
+    #[test]
+    fn test_fix_missing_field() {
+        let s_data_1 = ExcelData {
+            id: 1.0,
+            interval_name: "todo!()".to_string(),
+            device_name: "todo!()".to_string(),
+            device_id: "todo!()".to_string(),
+            voltage_level: "交流220kV".to_string(),
+            detection_point_id: "todo!()".to_string(),
+            measurement_image: "todo!()".to_string(),
+            thermal: 10.0,
+            normal_corresponding_point_temperature: -99999f64,
+            emissivity: 0.9,
+            ambient_temperature: 20.0,
+            temperature_rise: -99999f64,
+            distance: -99999f64,
+            load_current: 0.0,
+        };
+        let s_data_2 = ExcelData {
+            id: 2.0,
+            interval_name: "todo!()".to_string(),
+            device_name: "todo!()3".to_string(),
+            device_id: "todo!()".to_string(),
+            voltage_level: "交流220kV".to_string(),
+            detection_point_id: "todo!()".to_string(),
+            measurement_image: "todo!()".to_string(),
+            thermal: 10.0,
+            normal_corresponding_point_temperature: -99999f64,
+            emissivity: 0.9,
+            ambient_temperature: 20.0,
+            temperature_rise: -99999f64,
+            distance: -99999f64,
+            load_current: 0.0,
+        };
+        let r_data_1 = ExcelData {
+            id: 1.0,
+            interval_name: "todo!()".to_string(),
+            device_name: "todo!()".to_string(),
+            device_id: "todo!()".to_string(),
+            voltage_level: "交流220kV".to_string(),
+            detection_point_id: "todo!()4".to_string(),
+            measurement_image: "todo!()".to_string(),
+            thermal: 10.0,
+            normal_corresponding_point_temperature: -99999f64,
+            emissivity: 0.9,
+            ambient_temperature: 20.0,
+            temperature_rise: -99999f64,
+            distance: -99999f64,
+            load_current: 0.0,
+        };
+        let r_data_2 = ExcelData {
+            id: 3.0,
+            interval_name: "todo!()2".to_string(),
+            device_name: "todo!()3".to_string(),
+            device_id: "".to_string(),
+            voltage_level: "交流220kV".to_string(),
+            detection_point_id: "".to_string(),
+            measurement_image: "todo!()".to_string(),
+            thermal: 10.0,
+            normal_corresponding_point_temperature: -99999f64,
+            emissivity: 0.9,
+            ambient_temperature: 20.0,
+            temperature_rise: 1f64,
+            distance: 3f64,
+            load_current: 0.0,
+        };
+        let source = vec![s_data_1, s_data_2];
+        let rematch_data = vec![r_data_1, r_data_2];
+        let data = fix_missing_field(source, rematch_data);
+        println!("{:?}", data);
+    }
 }
