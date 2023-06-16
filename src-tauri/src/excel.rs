@@ -39,7 +39,7 @@ pub async fn write_to_excel(excel_datas: Vec<ExcelData>, save_path: &str) -> Res
         write_excel_line(
             worksheet,
             u32::try_from(i).unwrap(),
-            process_excel_data(data.clone()),
+            process_excel_data(data.clone()).await,
         );
     }
 
@@ -49,7 +49,8 @@ pub async fn write_to_excel(excel_datas: Vec<ExcelData>, save_path: &str) -> Res
     };
 }
 
-fn process_excel_data(
+#[tauri::command(rename_all = "snake_case")]
+pub async fn process_excel_data(
     ExcelData {
         id,
         interval_name,
@@ -123,7 +124,8 @@ fn process_excel_data(
     };
 }
 
-fn fix_missing_field(
+#[tauri::command(rename_all = "snake_case")]
+pub async fn fix_missing_field(
     source: Vec<ExcelData>,
     missing_field_data: Vec<ExcelData>,
 ) -> MatchedData {
@@ -162,7 +164,8 @@ fn fix_missing_field(
     };
 }
 
-fn rematch_excel_data(
+#[tauri::command(rename_all = "snake_case")]
+pub async fn rematch_excel_data(
     source: Vec<ExcelData>,
     rematch_data: Vec<ExcelData>,
 ) -> MatchedData {
