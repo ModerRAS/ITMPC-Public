@@ -36,7 +36,7 @@ async function SelectSourceFolder() {
   return names;
 }
 
-async function SelectSourceFiles(setSourceExcelData) {
+async function SelectSourceFiles(setSourceExcelData, setSourceFolderFiles) {
   let files = await open({
     title: "选择待合并的Excel文件",
     multiple: true,
@@ -49,22 +49,25 @@ async function SelectSourceFiles(setSourceExcelData) {
   });
   let source = [];
   console.log(files);
-  files.forEach(async file => {
-    let lines = await invoke("get_excel_lines", { excel_path: file });
-    source.push(...lines)
-  });
-  console.log(source);
-  setSourceExcelData(source);
-  return files;
+  if (files?.length > 0) {
+    files.forEach(async file => {
+      let lines = await invoke("get_excel_lines", { excel_path: file });
+      source.push(...lines)
+    });
+    console.log(source);
+    setSourceExcelData(source);
+    setSourceFolderFiles(files);
+  }
+
 }
 
-async function SelectTargetFolder() {
+async function SelectTargetFolder(setTargetFolder) {
   let file = await open({
     title: "选择输出文件夹",
     directory: true,
   });
   console.log(file);
-  return file;
+  setTargetFolder(file);
 }
 
 async function StartConvert(SourceExcelData, TargetExcelData, TargetFolder, setConvertState) {
@@ -153,12 +156,12 @@ export default function Page() {
           description={"选择PMS下载的模板Excel文件"}
         />
         <Button
-          handler={async () => setSourceFolderFiles(await SelectSourceFiles(setSourceExcelData))}
+          handler={async () => await SelectSourceFiles(setSourceExcelData, setSourceFolderFiles)}
           name={"选择文件"}
           description={"选择待合并的Excel文件"}
         />
         <Button
-          handler={async () => setTargetFolder(await SelectTargetFolder())}
+          handler={async () => await SelectTargetFolder(setTargetFolder)}
           name={"选择文件夹"}
           description={"选择输出的Excel文件存放目录"}
         />
