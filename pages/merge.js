@@ -81,13 +81,13 @@ async function StartConvert(SourceExcelData, TargetExcelData, TargetFolder, setC
   let not_found_data = []
 
   for (const ExcelData of SourceExcelData) {
-    SourceExcelDataMap.set(ExcelData.device_name, ExcelData)
+    SourceExcelDataMap.set(ExcelData.device_id, ExcelData)
   }
 
 
 
   for (const ExcelData of TargetExcelData) {
-    let data = SourceExcelDataMap.get(ExcelData.device_name)
+    let data = SourceExcelDataMap.get(ExcelData.device_id)
     // console.log(`data: ${data}, ExcelData: ${ExcelData}`)
     // console.log(data)
     // console.log(ExcelData)
