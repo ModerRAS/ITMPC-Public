@@ -335,6 +335,8 @@ pub async fn get_image_names(excel_path: &str) -> Result<Vec<String>, String> {
 
 #[cfg(test)]
 mod tests {
+    use tauri::async_runtime::block_on;
+
     use crate::excel::fix_missing_field;
 
     use super::{ExcelData, rematch_excel_data};
@@ -407,7 +409,7 @@ mod tests {
         };
         let source = vec![s_data_1, s_data_2];
         let rematch_data = vec![r_data_1, r_data_2];
-        let data = rematch_excel_data(source, rematch_data);
+        let data = block_on(rematch_excel_data(source, rematch_data));
         println!("{:?}", data);
     }
 
@@ -479,7 +481,7 @@ mod tests {
         };
         let source = vec![s_data_1, s_data_2];
         let rematch_data = vec![r_data_1, r_data_2];
-        let data = fix_missing_field(source, rematch_data);
+        let data = block_on(fix_missing_field(source, rematch_data));
         println!("{:?}", data);
     }
 }
