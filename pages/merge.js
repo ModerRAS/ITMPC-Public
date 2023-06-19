@@ -74,25 +74,29 @@ async function StartConvert(SourceExcelData, TargetExcelData, TargetFolder, setC
 
   await setConvertState(`合并中。。。`);
 
-  let SourceExcelDataMap = new Map();
-
+  let SourceExcelDataMapId = new Map();
+  let SourceExcelDataMapName = new Map();
   let retdata = []
 
   let not_found_data = []
 
   for (const ExcelData of SourceExcelData) {
-    SourceExcelDataMap.set(ExcelData.device_id, ExcelData)
+    SourceExcelDataMapId.set(ExcelData.device_id, ExcelData)
+    SourceExcelDataMapName.set(ExcelData.device_name, ExcelData)
   }
 
 
 
   for (const ExcelData of TargetExcelData) {
-    let data = SourceExcelDataMap.get(ExcelData.device_id)
+    let data_id = SourceExcelDataMapId.get(ExcelData.device_id)
+    let data_name = SourceExcelDataMapName.get(ExcelData.device_name)
     // console.log(`data: ${data}, ExcelData: ${ExcelData}`)
     // console.log(data)
     // console.log(ExcelData)
-    if (data) {
-      retdata.push(data)
+    if (data_id) {
+      retdata.push(data_id)
+    } else if (data_name) {
+      retdata.push(data_name)
     } else {
       not_found_data.push(ExcelData)
     }
