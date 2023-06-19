@@ -85,9 +85,13 @@ async function StartConvert(
 ) {
   try {
     let matched_data = await invoke("fix_missing_field", {source:SourceExcelData, missing_field_data: RematchExcelData});
+    let excel_datas = []
+    for (const data of matched_data.matched) {
+      excel_datas.push(await invoke("process_excel_data", {excel_data: data}))
+    }
     console.log(matched_data);
     await invoke("write_to_excel", {
-      excel_datas: matched_data.matched,
+      excel_datas: excel_datas,
       save_path: `${TargetFolder}/表格数据.xlsx`,
     });
   } catch (error) {
