@@ -102,3 +102,12 @@ pub async fn import_data(image_path: String, excel_datas: Vec<ExcelData>) {
     };
 
 }
+
+#[tauri::command(rename_all = "snake_case")]
+pub async fn get_data() -> Result<JsonData, ()> {
+    match JsonData::load().await {
+        Ok(o) => return Ok(o),
+        Err(e) => return Err(e),
+    };
+
+}

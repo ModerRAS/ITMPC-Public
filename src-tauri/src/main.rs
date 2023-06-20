@@ -18,6 +18,7 @@ use ocr::*;
 
 use excel::{get_image_names, get_excel_lines};
 
+use crate::data::get_data;
 use crate::data::import_data;
 use crate::excel::fix_missing_field;
 use crate::excel::process_excel_data;
@@ -48,7 +49,8 @@ fn main() {
             fix_missing_field,
             process_excel_data,
             rematch_excel_data,
-            import_data
+            import_data,
+            get_data
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
