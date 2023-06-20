@@ -22,7 +22,7 @@ export default function BaseContainer({ children }) {
             </span>
           </h2>
           <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            将拆分的上传PMS的表格合并在一起
+            将拆分的上传PMS的表格合并在一起，并排序为合适的顺序
           </p>
         </Link>
 
