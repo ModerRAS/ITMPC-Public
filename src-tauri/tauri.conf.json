@@ -28,7 +28,9 @@
       "dialog": {
         "all": false,
         "open": true,
-        "ask": true
+        "ask": true,
+        "message": true,
+        "save": true
       },
       "fs": {
         "all": true,

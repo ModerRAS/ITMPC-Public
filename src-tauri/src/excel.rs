@@ -102,6 +102,80 @@ pub fn process_excel_data(
 }
 
 #[tauri::command(rename_all = "snake_case")]
+pub fn reprocess_excel_data(
+    ExcelData {
+        id,
+        interval_name,
+        device_name,
+        device_id,
+        voltage_level,
+        detection_point_id,
+        measurement_image,
+        thermal,
+        normal_corresponding_point_temperature,
+        emissivity,
+        ambient_temperature,
+        temperature_rise,
+        distance: _,
+        load_current,
+    }: ExcelData,
+) -> ExcelData {
+    let distance = if voltage_level.starts_with("直流") {
+        9f64
+    } else {
+        match voltage_level.as_str() {
+            "交流1000kV" => 9f64,
+            "交流500kV" => 6f64,
+            _ => 3f64,
+        }
+    };
+
+    let normal_corresponding_point_temperature =
+        if thermal != -99999f64 {
+            thermal
+        } else {
+            normal_corresponding_point_temperature
+        };
+
+    let temperature_rise = if ambient_temperature != -99999f64
+        && thermal != -99999f64
+    {
+        thermal - ambient_temperature
+    } else {
+        temperature_rise
+    };
+
+    let emissivity = if emissivity == -99999f64 {
+        0.9
+    } else {
+        emissivity
+    };
+
+    let load_current = if load_current == -99999f64 {
+        0f64
+    } else {
+        load_current
+    };
+
+    return ExcelData {
+        id: id,
+        interval_name: interval_name,
+        device_name: device_name,
+        device_id: device_id,
+        voltage_level: voltage_level,
+        detection_point_id: detection_point_id,
+        measurement_image: measurement_image,
+        thermal: thermal,
+        normal_corresponding_point_temperature: normal_corresponding_point_temperature,
+        emissivity: emissivity,
+        ambient_temperature: ambient_temperature,
+        temperature_rise: temperature_rise,
+        distance: distance,
+        load_current: load_current,
+    };
+}
+
+#[tauri::command(rename_all = "snake_case")]
 pub async fn fix_missing_field(
     source: Vec<ExcelData>,
     missing_field_data: Vec<ExcelData>,
@@ -317,7 +391,7 @@ mod tests {
 
     use crate::excel::fix_missing_field;
 
-    use super::{ExcelData, };
+    use super::ExcelData;
 
     #[test]
     fn test_fix_missing_field() {

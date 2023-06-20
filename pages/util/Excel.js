@@ -1,6 +1,6 @@
 
 import { invoke } from "@tauri-apps/api/tauri";
-import { open, ask } from "@tauri-apps/api/dialog";
+import { open, save, ask } from "@tauri-apps/api/dialog";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
 
 async function GetExcelsData(setExcelData) {
@@ -39,4 +39,16 @@ async function SelectFolder(setFolder) {
   setFolder(file);
 }
 
-export { GetExcelsData, SelectFolder };
+async function SelectSaveExcelPath(setPath) {
+    let file = await save({
+        title: "保存为",
+        filters: [{
+            name: "Excel",
+            extensions: ["xlsx"],
+          }]
+    });
+    console.log(file);
+    setPath(file);
+  }
+
+export { GetExcelsData, SelectFolder, SelectSaveExcelPath };
