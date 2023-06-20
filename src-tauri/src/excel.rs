@@ -2,32 +2,9 @@ use std::collections::HashMap;
 
 use calamine::{open_workbook_auto, Reader};
 use rust_xlsxwriter::{Workbook, Worksheet};
-use serde::{Deserialize, Serialize};
 
+use crate::data::{ExcelData, MatchedData};
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct MatchedData {
-    matched: Vec<ExcelData>,
-    unmatched: Vec<ExcelData>
-}
-
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct ExcelData {
-    id: f64,
-    interval_name: String,
-    device_name: String,
-    device_id: String,
-    voltage_level: String,
-    detection_point_id: String,
-    measurement_image: String,
-    thermal: f64,
-    normal_corresponding_point_temperature: f64,
-    emissivity: f64,
-    ambient_temperature: f64,
-    temperature_rise: f64,
-    distance: f64,
-    load_current: f64,
-}
 
 #[tauri::command(rename_all = "snake_case")]
 pub async fn write_to_excel(excel_datas: Vec<ExcelData>, save_path: &str) -> Result<(), ()> {

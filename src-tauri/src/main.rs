@@ -181,3 +181,5 @@ async fn read_thermal(image_path: &str) -> Result<f64, ()> {
 pub mod excel;
 
 pub mod ocr;
+
+pub mod data;
