@@ -22,7 +22,6 @@ use crate::data::get_data;
 use crate::data::import_data;
 use crate::excel::fix_missing_field;
 use crate::excel::process_excel_data;
-use crate::excel::rematch_excel_data;
 use crate::excel::write_to_excel;
 
 
@@ -48,7 +47,6 @@ fn main() {
             read_thermals,
             fix_missing_field,
             process_excel_data,
-            rematch_excel_data,
             import_data,
             get_data
         ])

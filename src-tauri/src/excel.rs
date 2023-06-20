@@ -41,7 +41,7 @@ pub fn process_excel_data(
         emissivity,
         ambient_temperature,
         temperature_rise,
-        distance,
+        distance: _,
         load_current,
     }: ExcelData,
 ) -> ExcelData {
@@ -317,79 +317,7 @@ mod tests {
 
     use crate::excel::fix_missing_field;
 
-    use super::{ExcelData, rematch_excel_data};
-
-    #[test]
-    fn test_rematch_excel_data() {
-        let s_data_1 = ExcelData {
-            id: 1.0,
-            interval_name: "todo!()".to_string(),
-            device_name: "todo!()".to_string(),
-            device_id: "todo!()".to_string(),
-            voltage_level: "交流220kV".to_string(),
-            detection_point_id: "todo!()".to_string(),
-            measurement_image: "todo!()".to_string(),
-            thermal: 10.0,
-            normal_corresponding_point_temperature: -99999f64,
-            emissivity: 0.9,
-            ambient_temperature: 20.0,
-            temperature_rise: -99999f64,
-            distance: -99999f64,
-            load_current: 0.0,
-        };
-        let s_data_2 = ExcelData {
-            id: 2.0,
-            interval_name: "todo!()".to_string(),
-            device_name: "todo!()3".to_string(),
-            device_id: "todo!()".to_string(),
-            voltage_level: "交流220kV".to_string(),
-            detection_point_id: "todo!()".to_string(),
-            measurement_image: "todo!()".to_string(),
-            thermal: 10.0,
-            normal_corresponding_point_temperature: -99999f64,
-            emissivity: 0.9,
-            ambient_temperature: 20.0,
-            temperature_rise: -99999f64,
-            distance: -99999f64,
-            load_current: 0.0,
-        };
-        let r_data_1 = ExcelData {
-            id: 1.0,
-            interval_name: "todo!()".to_string(),
-            device_name: "todo!()".to_string(),
-            device_id: "todo!()".to_string(),
-            voltage_level: "交流220kV".to_string(),
-            detection_point_id: "todo!()4".to_string(),
-            measurement_image: "todo!()".to_string(),
-            thermal: 10.0,
-            normal_corresponding_point_temperature: -99999f64,
-            emissivity: 0.9,
-            ambient_temperature: 20.0,
-            temperature_rise: -99999f64,
-            distance: -99999f64,
-            load_current: 0.0,
-        };
-        let r_data_2 = ExcelData {
-            id: 3.0,
-            interval_name: "todo!()2".to_string(),
-            device_name: "todo!()3".to_string(),
-            device_id: "".to_string(),
-            voltage_level: "交流220kV".to_string(),
-            detection_point_id: "".to_string(),
-            measurement_image: "todo!()".to_string(),
-            thermal: 10.0,
-            normal_corresponding_point_temperature: -99999f64,
-            emissivity: 0.9,
-            ambient_temperature: 20.0,
-            temperature_rise: -99999f64,
-            distance: -99999f64,
-            load_current: 0.0,
-        };
-        let source = vec![s_data_1, s_data_2];
-        let rematch_data = vec![r_data_1, r_data_2];
-        let data = block_on(rematch_excel_data(source, rematch_data));
-        println!("{:?}", data);
-    }
+    use super::{ExcelData, };
 
     #[test]
     fn test_fix_missing_field() {

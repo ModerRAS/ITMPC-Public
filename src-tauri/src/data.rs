@@ -2,7 +2,6 @@ use std::{path::PathBuf, fs};
 
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
-use tauri::api::http::ResponseType;
 use tokio::fs::{read_to_string, write};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -90,7 +89,7 @@ impl JsonData {
 pub async fn import_data(image_path: String, excel_datas: Vec<ExcelData>) {
     match JsonData::load().await {
         Ok(mut o) => o.push_str(image_path, excel_datas).await,
-        Err(e) => {
+        Err(_) => {
             let mut json_data = JsonData {
                 datas: vec![Data {
                     image_path: image_path,
