@@ -121,6 +121,23 @@ async function StartRepatch({
   }
   console.log(missing_data)
   console.log(still_missing_data)
+  console.log(patch_data)
+  let patched_data = Object.assign([],MissingLinesData)
+  for (const data of patch_data) {
+    patched_data.push(data)
+  }
+  console.log(patched_data)
+  for (const data of patch_data) {
+    let source_image_path = `${FullLinesDataImageFolder}/${data.measurement_image}`
+    let target_image_path = `${TargetFolder}/${data.measurement_image}`
+    await invoke("copy_file", { from: source_image_path, to: target_image_path });
+  }
+  try {
+    await invoke("write_to_excel", {excel_datas: patched_data, save_path: `${TargetFolder}/表格数据.xlsx`})
+  } catch (error) {
+    await ask("无法写入至表格，请检查该表格是否未关闭。", { title: "错误", type: "warning" });
+  }
+  setConvertState(`填充完成，仍然缺失的数据：${JSON.stringify(still_missing_data.map(e => e.device_name))}`)
 
 }
 
@@ -155,29 +172,6 @@ async function StartConvert(
   await setConvertState(`转换完成`);
 }
 
-function MergeLines(SourceExcelData, RematchExcelData) {
-  let ret = [];
-  console.log("SourceExcelData");
-  console.log(SourceExcelData);
-  if (SourceExcelData.length <= 0) {
-    return [];
-  }
-  let min_length =
-    SourceExcelData.length > RematchExcelData.length
-      ? RematchExcelData.length
-      : SourceExcelData.length;
-  for (let index = 0; index < min_length; index++) {
-    const Source = SourceExcelData[index];
-    const Rematch = RematchExcelData[index];
-    ret.push({
-      Source: Source,
-      Rematch: Rematch,
-    });
-  }
-
-  return ret;
-}
-
 export default function Page() {
   const [SourceFolderFiles, setSourceFolderFiles] = useState([""]);
   const [TargetFolder, setTargetFolder] = useState("");
@@ -187,13 +181,11 @@ export default function Page() {
   const [FullLinesDataImageFolder, setFullLinesDataImageFolder] = useState([
     "",
   ]);
-  const [AllFilePaths, setAllFilePaths] = useState([[""]]);
   const [ConvertState, setConvertState] = useState("空闲");
   const [SourceExcelData, setSourceExcelData] = useState([]);
   const [RematchExcelData, setRematchExcelData] = useState([]);
   useEffect(() => {
-    setAllFilePaths(MergeLines(SourceExcelData, RematchExcelData));
-  }, [SourceExcelData, RematchExcelData]);
+  });
   return (
     <BaseContainer>
       <div className="grid grid-cols-4 gap-2">
@@ -250,30 +242,6 @@ export default function Page() {
         <div className="border-collapse border border-green-800 table-auto col-span-4">
           当前状态：{ConvertState}
         </div>
-        <table className="border-collapse border border-green-800 table-auto col-span-4">
-          <thead>
-            <tr>
-              <th className="border border-green-800">
-                待转换条目，共{SourceExcelData.length}个
-              </th>
-              <th className="border border-green-800">
-                输出条目，共{RematchExcelData.length}个
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {AllFilePaths.map((element, i) => (
-              <tr key={i}>
-                <td className="border border-green-800">
-                  {JSON.stringify(element.Source)}
-                </td>
-                <td className="border border-green-800">
-                  {JSON.stringify(element.Rematch)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
     </BaseContainer>
   );
