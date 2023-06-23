@@ -29,30 +29,6 @@ async function SelectExcel(setSourceExcelData, setTargetFileNames) {
   setSourceExcelData(lines);
   return names;
 }
-
-async function SelectSourceFolder() {
-  let file = await open({
-    title: "选择图片文件夹",
-    directory: true,
-  });
-  console.log(file);
-  let names = await invoke("get_image_from_directory", { source: file });
-  console.log(names);
-  return names;
-}
-async function SelectExcelFiles(setExcelFiles) {
-  let file = await open({
-    title: "选择Excel文件",
-    multiple: true,
-    filters: [
-      {
-        name: "Excel",
-        extensions: ["xls", "xlsx"],
-      },
-    ],
-  });
-  setExcelFiles(file);
-}
 async function GetExcelsData(setExcelData) {
   let file = await open({
     title: "选择Excel文件",
