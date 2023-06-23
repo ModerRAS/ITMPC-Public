@@ -77,12 +77,16 @@ export default function Page() {
           description={"选择待合并的Excel文件"}
         />
         <Button
-          handler={async () => {
-            await SelectSaveExcelPath(setTargetPath)
-            await StartConvert(SourceExcelData, TargetExcelData, TargetPath, setConvertState)
-          }}
+          handler={async () => await SelectSaveExcelPath(setTargetPath)}
           name={"保存为文件"}
           description={"保存为Excel文件"}
+        />
+        <Button
+          handler={async () => {
+            await StartConvert(SourceExcelData, TargetExcelData, TargetPath, setConvertState)
+          }}
+          name={"开始转换"}
+          description={"按下进行Excel合并"}
         />
         <div className="border-collapse border border-green-800 table-auto col-span-4">
           当前状态：{ConvertState}
