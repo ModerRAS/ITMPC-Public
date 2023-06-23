@@ -1,4 +1,3 @@
-
 import { invoke } from "@tauri-apps/api/tauri";
 import { open, save, ask } from "@tauri-apps/api/dialog";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
@@ -32,7 +31,7 @@ async function GetExcelsData(setExcelData) {
 
 async function SelectFolder(setFolder) {
   let file = await open({
-    title: "选择输出文件夹",
+    title: "选择文件夹",
     directory: true,
   });
   console.log(file);
@@ -40,15 +39,56 @@ async function SelectFolder(setFolder) {
 }
 
 async function SelectSaveExcelPath(setPath) {
-    let file = await save({
-        title: "保存为",
-        filters: [{
-            name: "Excel",
-            extensions: ["xlsx"],
-          }]
-    });
-    console.log(file);
-    setPath(file);
-  }
+  let file = await save({
+    title: "保存为",
+    filters: [
+      {
+        name: "Excel",
+        extensions: ["xlsx"],
+      },
+    ],
+  });
+  console.log(file);
+  setPath(file);
+}
 
-export { GetExcelsData, SelectFolder, SelectSaveExcelPath };
+function GetDataReference(ExcelData) {
+  return ExcelData.map((e) => {
+    let source_image_name = e.measurement_image
+      .replaceAll("/", "")
+      .replaceAll("\\", "")
+      .replaceAll("?", "")
+      .replaceAll("*", "");
+    let target_image_name = `${e.device_name
+      .replaceAll("/", "")
+      .replaceAll("\\", "")
+      .replaceAll("?", "")
+      .replaceAll("*", "")}.jpg`;
+    return {
+      device_name: e.device_name,
+      isSame: source_image_name == target_image_name,
+      source_image_name: source_image_name,
+      target_image_name: target_image_name,
+    };
+  });
+}
+
+function ChangeExcelData(ExcelData) {
+  return ExcelData.map((e) => {
+    let target_image_name = `${e.device_name
+      .replaceAll("/", "")
+      .replaceAll("\\", "")
+      .replaceAll("?", "")
+      .replaceAll("*", "")}.jpg`;
+    let data = { measurement_image: target_image_name, ...e };
+    return data;
+  });
+}
+
+export {
+  GetExcelsData,
+  SelectFolder,
+  SelectSaveExcelPath,
+  GetDataReference,
+  ChangeExcelData,
+};
