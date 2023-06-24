@@ -36,8 +36,9 @@ async function StartConvert(
     });
   }
   try {
+    let excel_datas = ChangeExcelData(ExcelData)
     await invoke("write_to_excel", {
-      excel_datas: ChangeExcelData(ExcelData),
+      excel_datas: excel_datas,
       save_path: `${TargetFolder}/表格数据.xlsx`,
     });
   } catch (error) {

@@ -75,12 +75,21 @@ function GetDataReference(ExcelData) {
 
 function ChangeExcelData(ExcelData) {
   return ExcelData.map((e) => {
+    let source_image_name = e.measurement_image
+      .replaceAll("/", "")
+      .replaceAll("\\", "")
+      .replaceAll("?", "")
+      .replaceAll("*", "");
     let target_image_name = `${e.device_name
       .replaceAll("/", "")
       .replaceAll("\\", "")
       .replaceAll("?", "")
       .replaceAll("*", "")}.jpg`;
-    let data = { measurement_image: target_image_name, ...e };
+    if (source_image_name != target_image_name) {
+      console.log(e);
+    }
+    let data = Object.assign(e);
+    data.measurement_image = target_image_name;
     return data;
   });
 }
