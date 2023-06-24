@@ -7,7 +7,7 @@ import { convertFileSrc } from "@tauri-apps/api/tauri";
 
 import BaseContainer from "./util/container";
 import Button from "./util/Button";
-import { GetExcelsData, SelectFolder } from "./util/Excel";
+import { GetExcelsData, SelectFolder } from "../lib/Excel";
 
 async function StartRepatch({
   setConvertState,

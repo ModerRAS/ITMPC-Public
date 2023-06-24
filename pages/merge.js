@@ -7,7 +7,7 @@ import { convertFileSrc } from '@tauri-apps/api/tauri';
 
 import BaseContainer from "./util/container";
 import Button from "./util/Button";
-import { GetExcelsData, SelectSaveExcelPath } from "./util/Excel";
+import { GetExcelsData, SelectSaveExcelPath } from "../lib/Excel";
 
 async function StartConvert(SourceExcelData, TargetExcelData, TargetPath, setConvertState) {
 

@@ -12,7 +12,7 @@ import {
   GetDataReference,
   GetExcelsData,
   SelectFolder,
-} from "./util/Excel";
+} from "../lib/Excel";
 
 async function StartConvert(
   SourceFolder,
