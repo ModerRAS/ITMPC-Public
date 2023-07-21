@@ -7,28 +7,7 @@ import { convertFileSrc } from '@tauri-apps/api/tauri';
 
 import BaseContainer from "./util/container";
 import Button from "./util/Button";
-
-async function SelectExcel(setExcelData, setTargetFileNames) {
-  let file = await open({
-    title: "选择待打开的Excel文件",
-    filters: [
-      {
-        name: "Excel",
-        extensions: ["xls", "xlsx"],
-      },
-    ],
-  });
-  console.log(file);
-  let lines = await invoke("get_excel_lines", { excel_path: file });
-  let names = lines.map(line => {
-    return line.device_name
-  })
-  setTargetFileNames(names)
-  console.log(names);
-  console.log(lines)
-  setExcelData(lines)
-  return names;
-}
+import { GetExcelsData } from "@/lib/Excel";
 
 async function SelectSourceFolder() {
   let file = await open({
@@ -157,13 +136,16 @@ export default function Page() {
   const [ConvertState, setConvertState] = useState("空闲");
   const [ExcelData, setExcelData] = useState([]);
   useEffect(() => {
+    setTargetFileNames(ExcelData.map(e => e.measurement_image))
+  }, [ExcelData])
+  useEffect(() => {
     setAllFilePaths(MergeLines(SourceFolderFiles, TargetFolder, TargetFileNames))
   }, [SourceFolderFiles, TargetFolder, TargetFileNames]);
   return (
     <BaseContainer>
       <div className="grid grid-cols-4 gap-2">
         <Button
-          handler={async () => await SelectExcel(setExcelData, setTargetFileNames)}
+          handler={async () => await GetExcelsData(setExcelData)}
           name={"选择文件"}
           description={"选择待识别的Excel文件"}
         />
