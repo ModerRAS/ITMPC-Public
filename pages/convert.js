@@ -58,7 +58,7 @@ async function StartConvert(SourceFolderFiles, TargetFolder, TargetFileNames, Ex
 
   if (TargetFileNames.length === SourceFolderFiles.length) {
     for (let index = 0; index < TargetFileNames.length; index++) {
-      const TargetFileName = `${TargetFolder}\\${TargetFileNames[index]}.jpg`;
+      const TargetFileName = `${TargetFolder}\\${TargetFileNames[index]}`;
       const SourceFileName = SourceFolderFiles[index];
 
       setConvertState(`正在复制文件(已完成${index}/${TargetFileNames.length})`)
@@ -83,7 +83,7 @@ async function StartConvert(SourceFolderFiles, TargetFolder, TargetFileNames, Ex
 
     for (let index = 0; index < ExcelData.length; index++) {
       const data = ExcelData[index];
-      const thermal_tmp = Thermal.get(data.device_name);
+      const thermal_tmp = Thermal.get(data.measurement_image);
       if (thermal_tmp) {
         retdata.push({...data, thermal: thermal_tmp})
       } else {
@@ -121,7 +121,7 @@ function MergeLines(SourceFolderFiles, TargetFolder, TargetFileNames) {
     const TargetFileName = TargetFileNames[index];
     ret.push({
       SourceFilePath: SourceFolderFile,
-      TargetFilePath: `${TargetFolder}\\${TargetFileName}.jpg`,
+      TargetFilePath: `${TargetFolder}\\${TargetFileName}`,
     });
   }
 
