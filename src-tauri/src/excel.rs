@@ -328,6 +328,11 @@ pub async fn get_excel_lines(excel_path: &str) -> Result<Vec<ExcelData>, String>
                                             .replace("\\", "")
                                             .replace("?", "")
                                             .replace("*", "")
+                                            .replace("\"", "")
+                                            .replace(":", "")
+                                            .replace("<", "")
+                                            .replace(">", "")
+                                            .replace("|", "")
                                     )
                                     .as_str(),
                                 )
