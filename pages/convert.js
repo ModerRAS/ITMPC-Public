@@ -61,7 +61,7 @@ async function StartConvert(SourceFolderFiles, TargetFolder, TargetFileNames, Ex
       const TargetFileName = `${TargetFolder}\\${TargetFileNames[index]}`;
       const SourceFileName = SourceFolderFiles[index];
 
-      setConvertState(`正在复制文件(已完成${index}/${TargetFileNames.length})`)
+      setConvertState(`正在复制文件(已完成${index}/${TargetFileNames.length}), 下一个${SourceFileName}到${TargetFileName}`)
       await invoke("copy_file", { from: SourceFileName, to: TargetFileName });
     }
 
