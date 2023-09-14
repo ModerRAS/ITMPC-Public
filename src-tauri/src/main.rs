@@ -17,6 +17,7 @@ use tauri::Manager;
 use ocr::*;
 
 use excel::{get_image_names, get_excel_lines};
+use tauri_plugin_log::LogTarget;
 
 use crate::data::get_data;
 use crate::data::import_data;
@@ -28,6 +29,11 @@ use crate::excel::write_to_excel;
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_log::Builder::default().targets([
+            LogTarget::LogDir,
+            LogTarget::Stdout,
+            LogTarget::Webview,
+        ]).build())
         .setup(|app| {
             #[cfg(debug_assertions)] // only include this code on debug builds
             {
